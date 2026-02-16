@@ -2,7 +2,7 @@
 
 # Introduction
 
-> A comprehensive TypeScript library for health, fitness, and smartwatch data. Unified access to Oura Ring, WHOOP, Apple Health, Fitbit, Garmin, Polar, Suunto, Coros, and Wahoo — with FIT file parsing, training metrics, data export, and more.
+> A comprehensive TypeScript library for health, fitness, and smartwatch data. Unified access to Oura Ring, WHOOP, Apple Health, Fitbit, Withings, Renpho, Garmin, Polar, Suunto, Coros, and Wahoo — with smart scale body composition, FIT file parsing, training metrics, data export, and more.
 
 ## Why ts-health?
 
@@ -13,8 +13,12 @@ Building a training app that needs health and device data from multiple sources 
 ### Health Platform APIs
 - **Oura Ring** - Sleep, readiness, activity, HRV, SpO2, stress, body temperature, VO2 max
 - **WHOOP** - Recovery, strain, sleep, workouts, HRV, SpO2, skin temperature
-- **Apple Health** - XML export parsing for sleep, heart rate, HRV, workouts, and more
-- **Fitbit** - Sleep stages, activity summaries, intraday heart rate, HRV, SpO2
+- **Apple Health** - XML export parsing for sleep, heart rate, HRV, workouts, body composition, and more
+- **Fitbit** - Sleep stages, activity summaries, intraday heart rate, HRV, SpO2, Aria scale data
+
+### Smart Scales & Body Composition
+- **Withings** - Body, Body+, Body Cardio, Body Comp, Body Scan: weight, body fat %, muscle mass, bone mass, water %, visceral fat, BMR, heart rate
+- **Renpho** - Weight, body fat %, muscle mass, bone mass, water %, visceral fat, BMR, protein %, subcutaneous fat, skeletal muscle
 
 ### Smartwatch & Device Data
 - **Garmin** - USB download, FIT file parsing, Garmin Connect cloud sync
@@ -54,6 +58,19 @@ const whoop = createWhoopDriver('whoop-token')
 // Both return the same SleepSession[] type
 const ouraSleep = await oura.getSleep({ startDate: '2025-01-01' })
 const whoopSleep = await whoop.getSleep({ startDate: '2025-01-01' })
+```
+
+Smart scales also use the unified interface:
+
+```typescript
+import { createWithingsDriver, createRenphoDriver } from 'ts-health'
+
+const withings = createWithingsDriver('withings-token')
+const body = await withings.getBodyComposition({ startDate: '2025-01-01' })
+// => BodyComposition[] with weight, fat%, muscle, bone, water%, etc.
+
+const renpho = createRenphoDriver({ email: '...', password: '...' })
+const weights = await renpho.getWeightMeasurements({ startDate: '2025-01-01' })
 ```
 
 Device data uses smartwatch drivers and FIT file parsing:

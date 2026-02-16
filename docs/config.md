@@ -60,6 +60,25 @@ const config: HealthConfig = {
   //   clientSecret: 'your-client-secret',
   //   accessToken: 'your-access-token',
   // },
+
+  /**
+   * Withings smart scale configuration.
+   * Requires OAuth credentials from https://developer.withings.com/
+   */
+  // withings: {
+  //   clientId: 'your-client-id',
+  //   clientSecret: 'your-client-secret',
+  //   accessToken: 'your-access-token',
+  // },
+
+  /**
+   * Renpho smart scale configuration.
+   * Uses email/password authentication with your Renpho account.
+   */
+  // renpho: {
+  //   email: 'your-email@example.com',
+  //   password: 'your-password',
+  // },
 }
 
 export default config
@@ -85,7 +104,7 @@ Directory where synced health data will be stored.
 
 - **Type:** `HealthPlatformType[]`
 - **Default:** `['oura']`
-- **Options:** `'oura'`, `'whoop'`, `'apple_health'`, `'fitbit'`, `'garmin'`
+- **Options:** `'oura'`, `'whoop'`, `'apple_health'`, `'fitbit'`, `'garmin'`, `'withings'`, `'renpho'`
 
 Which health platform drivers to enable.
 
@@ -130,6 +149,29 @@ Fitbit Web API configuration.
 | `refreshToken` | `string?` | Refresh token for token renewal |
 | `baseUrl` | `string?` | Custom API base URL |
 
+### `withings`
+
+Withings smart scale API configuration.
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `clientId` | `string` | OAuth client ID |
+| `clientSecret` | `string` | OAuth client secret |
+| `accessToken` | `string?` | Pre-obtained access token |
+| `refreshToken` | `string?` | Refresh token for token renewal |
+| `baseUrl` | `string?` | Custom API base URL |
+
+### `renpho`
+
+Renpho smart scale configuration.
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `email` | `string` | Renpho account email |
+| `password` | `string` | Renpho account password |
+| `accessToken` | `string?` | Pre-obtained session key |
+| `baseUrl` | `string?` | Custom API base URL |
+
 ## Environment Variables
 
 You can also set tokens via environment variables to avoid hardcoding secrets:
@@ -138,6 +180,9 @@ You can also set tokens via environment variables to avoid hardcoding secrets:
 export OURA_ACCESS_TOKEN=your-oura-pat
 export WHOOP_ACCESS_TOKEN=your-whoop-token
 export FITBIT_ACCESS_TOKEN=your-fitbit-token
+export WITHINGS_ACCESS_TOKEN=your-withings-token
+export RENPHO_EMAIL=your-renpho-email
+export RENPHO_PASSWORD=your-renpho-password
 ```
 
 Then reference them in your config:

@@ -1,6 +1,6 @@
 export default {
   title: 'ts-health',
-  description: 'TypeScript library for health, fitness & smartwatch data. Oura Ring, WHOOP, Fitbit, Garmin, Polar, Suunto, Coros, Wahoo, Apple Health — with FIT parsing, training metrics, and more.',
+  description: 'TypeScript library for health, fitness & smartwatch data. Oura Ring, WHOOP, Fitbit, Withings, Renpho, Garmin, Polar, Suunto, Coros, Wahoo, Apple Health — with smart scale body composition, FIT parsing, training metrics, and more.',
 
   themeConfig: {
     nav: [
@@ -27,6 +27,7 @@ export default {
           { text: 'WHOOP', link: '/features/whoop' },
           { text: 'Apple Health', link: '/features/apple-health' },
           { text: 'Fitbit', link: '/features/fitbit' },
+          { text: 'Smart Scales', link: '/features/smart-scales' },
           { text: 'Garmin Devices', link: '/features/garmin' },
           { text: 'FIT File Parsing', link: '/features/fit-parsing' },
           { text: 'Training Metrics', link: '/features/training-metrics' },

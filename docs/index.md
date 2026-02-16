@@ -5,7 +5,7 @@ layout: home
 hero:
   name: "ts-health"
   text: "Health, fitness & smartwatch data, unified."
-  tagline: "Oura Ring, WHOOP, Fitbit, Garmin, Polar, Suunto, Coros, Wahoo, Apple Health — plus FIT parsing, training metrics, and more."
+  tagline: "Oura Ring, WHOOP, Fitbit, Withings, Renpho, Garmin, Polar, Suunto, Coros, Wahoo, Apple Health — plus smart scale body composition, FIT parsing, training metrics, and more."
   image: /images/logo-white.png
   actions:
     - theme: brand
@@ -19,6 +19,9 @@ features:
   - title: "Health Platforms"
     icon: "💍"
     details: "Oura Ring, WHOOP, Apple Health, Fitbit — unified HealthDriver interface for sleep, readiness, HRV, SpO2, and more."
+  - title: "Smart Scales"
+    icon: "⚖️"
+    details: "Withings and Renpho smart scales — weight, body fat %, muscle mass, bone mass, water %, visceral fat, BMR, and more."
   - title: "Smartwatch Devices"
     icon: "⌚"
     details: "Garmin, Polar, Suunto, Coros, Wahoo — USB download, FIT file parsing, GPS tracks, and device monitoring data."

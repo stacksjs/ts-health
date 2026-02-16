@@ -128,6 +128,68 @@ const vo2 = await fitbit.getVO2Max(range)
 const workouts = await fitbit.getWorkouts(range)
 ```
 
+#### Withings Smart Scales
+
+The Withings driver uses the Withings Health API for smart scale body composition data:
+
+```typescript
+import { createWithingsDriver } from 'ts-health'
+
+const withings = createWithingsDriver('your-access-token')
+const range = { startDate: '2025-01-01', endDate: '2025-01-31' }
+
+// Full body composition data from smart scales
+const body = await withings.getBodyComposition(range)
+for (const m of body) {
+  console.log(`${m.day}: ${m.weight.toFixed(1)} kg`)
+  console.log(`  Body fat: ${m.bodyFatPercentage?.toFixed(1)}%`)
+  console.log(`  Muscle: ${m.muscleMass?.toFixed(1)} kg`)
+  console.log(`  Bone: ${m.boneMass?.toFixed(1)} kg`)
+  console.log(`  Water: ${m.waterPercentage?.toFixed(1)}%`)
+  console.log(`  Visceral fat: ${m.visceralFat}`)
+  console.log(`  BMR: ${m.basalMetabolicRate} kcal`)
+}
+
+// Simple weight measurements
+const weights = await withings.getWeightMeasurements(range)
+
+// Heart rate from scales with HR sensor (Body Cardio, Body Comp, Body Scan)
+const hr = await withings.getHeartRate(range)
+
+// Personal info
+const profile = await withings.getPersonalInfo()
+```
+
+#### Renpho Smart Scales
+
+The Renpho driver uses email/password authentication:
+
+```typescript
+import { createRenphoDriver } from 'ts-health'
+
+const renpho = createRenphoDriver({
+  email: 'your-email@example.com',
+  password: 'your-password',
+})
+
+const range = { startDate: '2025-01-01' }
+
+// Full body composition data
+const body = await renpho.getBodyComposition(range)
+for (const m of body) {
+  console.log(`${m.day}: ${m.weight.toFixed(1)} kg | BMI: ${m.bmi?.toFixed(1)}`)
+  console.log(`  Body fat: ${m.bodyFatPercentage?.toFixed(1)}%`)
+  console.log(`  Muscle: ${m.muscleMass?.toFixed(1)} kg`)
+  console.log(`  Protein: ${m.proteinPercentage?.toFixed(1)}%`)
+  console.log(`  Subcutaneous fat: ${m.subcutaneousFat?.toFixed(1)}%`)
+  console.log(`  Skeletal muscle: ${m.skeletalMuscle?.toFixed(1)}%`)
+  console.log(`  BMR: ${m.basalMetabolicRate} kcal`)
+}
+
+// Weight measurements
+const weights = await renpho.getWeightMeasurements(range)
+```
+
 ### Smartwatch & Device Data
 
 #### Garmin USB Download
@@ -352,25 +414,50 @@ const anomalies = trends.detectAnomalies(dataPoints, 2)
 
 ## CLI
 
+The CLI provides 22 commands for syncing, viewing, analyzing, and exporting health data. All commands support `--driver`, `--token`, `--days`, `--format json`, and `--output`.
+
 ```bash
-# Sync data from any supported platform
-health sync --driver oura --token YOUR_TOKEN --start 2025-01-01 --output ./data
+# Sync all health data from any platform
+health sync --driver oura --token YOUR_TOKEN --days 30 --output ./data
 
-# View sleep data
-health sleep --token YOUR_TOKEN --start 2025-01-01 --end 2025-01-07
+# View health metrics
+health sleep --driver oura --token YOUR_TOKEN --days 7
+health activity --driver oura --token YOUR_TOKEN --days 7
+health workouts --driver oura --token YOUR_TOKEN --days 30
+health hr --driver oura --token YOUR_TOKEN --days 1
+health hrv --driver oura --token YOUR_TOKEN --days 14
+health readiness --driver oura --token YOUR_TOKEN --days 7
+health spo2 --driver oura --token YOUR_TOKEN --days 7
+health stress --driver oura --token YOUR_TOKEN --days 7
+health body-temp --driver oura --token YOUR_TOKEN --days 14
+health vo2max --driver oura --token YOUR_TOKEN --days 30
 
-# View readiness scores
-health readiness --token YOUR_TOKEN --start 2025-01-01
+# Smart scale data
+health weight --driver withings --token YOUR_TOKEN --days 30
+health body --driver withings --token YOUR_TOKEN --days 30
+health body --driver renpho --email you@example.com --password pass123
 
-# Full training readiness analysis
-health analyze --token YOUR_TOKEN --days 14
+# Analysis
+health analyze --driver oura --token YOUR_TOKEN --days 14
+health recovery --driver oura --token YOUR_TOKEN --days 14
+health sleep-quality --driver oura --token YOUR_TOKEN --days 7
+health sleep-debt --driver oura --token YOUR_TOKEN --days 14
+health trends --driver oura --token YOUR_TOKEN --days 30 --metrics weight,sleep,hrv
+health dashboard --driver oura --token YOUR_TOKEN
+health compare --driver oura --token YOUR_TOKEN --days 14
 
-# Show version
-health version
+# Export & profile
+health export --driver oura --token YOUR_TOKEN --days 90 --output ./export.json
+health profile --driver oura --token YOUR_TOKEN
+
+# JSON output for programmatic use
+health sleep --driver oura --token YOUR_TOKEN --format json
 
 # Show help
 health --help
 ```
+
+See the [CLI Reference](/advanced/cli-reference) for full documentation of all commands and options.
 
 ## Testing
 

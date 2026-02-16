@@ -8,7 +8,7 @@
 
 # ts-health
 
-A comprehensive TypeScript library for health, fitness, and smartwatch data. Unified access to Oura Ring, WHOOP, Apple Health, Fitbit, Garmin, Polar, Suunto, Coros, and Wahoo — with FIT file parsing, training metrics, data export, and more. Built for training apps.
+A comprehensive TypeScript library for health, fitness, and smartwatch data. Unified access to Oura Ring, WHOOP, Apple Health, Fitbit, Withings, Renpho, Garmin, Polar, Suunto, Coros, and Wahoo — with smart scale body composition, FIT file parsing, training metrics, data export, and more. Built for training apps.
 
 ## Features
 
@@ -16,8 +16,15 @@ A comprehensive TypeScript library for health, fitness, and smartwatch data. Uni
 
 - **Oura Ring** - Full API v2 support: sleep, readiness, activity, heart rate, HRV, SpO2, stress, body temperature, VO2 max, sessions, tags, rest mode
 - **WHOOP** - Recovery, strain, sleep, workouts, HRV, SpO2, skin temperature
-- **Apple Health** - XML export parsing for sleep stages, heart rate, HRV, steps, workouts, SpO2, VO2 max
-- **Fitbit** - Sleep stages, activity summaries, intraday heart rate, HRV, SpO2, skin temperature, cardio score
+- **Apple Health** - XML export parsing for sleep stages, heart rate, HRV, steps, workouts, SpO2, VO2 max, body composition
+- **Fitbit** - Sleep stages, activity summaries, intraday heart rate, HRV, SpO2, skin temperature, cardio score, Aria scale data
+
+### Smart Scales & Body Composition
+
+- **Withings** - Full API support for Body, Body+, Body Cardio, Body Comp, Body Scan: weight, body fat %, muscle mass, bone mass, water %, visceral fat, BMR, heart rate
+- **Renpho** - Weight, body fat %, muscle mass, bone mass, water %, visceral fat, BMR, protein %, subcutaneous fat, skeletal muscle
+- **Fitbit Aria** - Weight and body fat via the Fitbit driver
+- **Apple Health** - Weight, BMI, body fat %, lean body mass from synced scale data
 
 ### Smartwatch & Device Support
 
@@ -56,6 +63,8 @@ A comprehensive TypeScript library for health, fitness, and smartwatch data. Uni
 - **Body Temperature** - Skin temperature deviations and trends
 - **VO2 Max** - Cardio fitness estimates
 - **Workouts** - Activity type, duration, calories, distance, heart rate, GPS tracks
+- **Body Composition** - Weight, body fat %, muscle mass, bone mass, water %, visceral fat, BMR, metabolic age
+- **Weight Tracking** - Weight measurements with BMI from smart scales
 
 ### Data Export
 
@@ -103,6 +112,29 @@ for (const session of sleep) {
   const mins = Math.floor((session.totalSleepDuration % 3600) / 60)
   console.log(`${session.day}: ${hours}h ${mins}m | efficiency: ${session.efficiency}%`)
 }
+```
+
+### Smart Scale Data (Withings, Renpho)
+
+```typescript
+import { createWithingsDriver, createRenphoDriver } from 'ts-health'
+
+// Withings (Body, Body+, Body Cardio, Body Comp, Body Scan)
+const withings = createWithingsDriver('your-access-token')
+const bodyComp = await withings.getBodyComposition({
+  startDate: '2025-01-01',
+  endDate: '2025-01-31',
+})
+
+for (const measurement of bodyComp) {
+  console.log(`${measurement.day}: ${measurement.weight.toFixed(1)} kg`)
+  console.log(`  Body fat: ${measurement.bodyFatPercentage?.toFixed(1)}%`)
+  console.log(`  Muscle: ${measurement.muscleMass?.toFixed(1)} kg`)
+}
+
+// Renpho smart scales
+const renpho = createRenphoDriver({ email: 'you@example.com', password: 'your-password' })
+const weights = await renpho.getWeightMeasurements({ startDate: '2025-01-01' })
 ```
 
 ### Smartwatch Device Data (Garmin, Polar, Suunto, Coros, Wahoo)
@@ -249,6 +281,48 @@ const activity = await fitbit.getDailyActivity({ startDate: '2025-01-01', endDat
 const hrv = await fitbit.getHRV({ startDate: '2025-01-01', endDate: '2025-01-07' })
 ```
 
+### Withings Smart Scale - Body Composition
+
+```typescript
+import { createWithingsDriver } from 'ts-health'
+
+const withings = createWithingsDriver('your-access-token')
+const range = { startDate: '2025-01-01', endDate: '2025-01-31' }
+
+// Full body composition data
+const body = await withings.getBodyComposition(range)
+for (const m of body) {
+  console.log(`${m.day}: ${m.weight.toFixed(1)} kg | fat: ${m.bodyFatPercentage?.toFixed(1)}%`)
+  console.log(`  Muscle: ${m.muscleMass?.toFixed(1)} kg | Bone: ${m.boneMass?.toFixed(1)} kg`)
+  console.log(`  Water: ${m.waterPercentage?.toFixed(1)}% | Visceral fat: ${m.visceralFat}`)
+}
+
+// Simple weight tracking
+const weights = await withings.getWeightMeasurements(range)
+
+// Heart rate from scales with HR sensor (Body Cardio, Body Comp)
+const hr = await withings.getHeartRate(range)
+```
+
+### Renpho Smart Scale - Body Composition
+
+```typescript
+import { createRenphoDriver } from 'ts-health'
+
+// Renpho uses email/password authentication
+const renpho = createRenphoDriver({
+  email: 'your-email@example.com',
+  password: 'your-password',
+})
+
+const body = await renpho.getBodyComposition({ startDate: '2025-01-01' })
+for (const m of body) {
+  console.log(`${m.day}: ${m.weight.toFixed(1)} kg | fat: ${m.bodyFatPercentage?.toFixed(1)}%`)
+  console.log(`  Protein: ${m.proteinPercentage?.toFixed(1)}% | Skeletal muscle: ${m.skeletalMuscle?.toFixed(1)}%`)
+  console.log(`  BMR: ${m.basalMetabolicRate} kcal`)
+}
+```
+
 ### Training Readiness Analysis
 
 ```typescript
@@ -366,21 +440,48 @@ const smoothed = trends.calculateMovingAverage(dataPoints, 7)
 
 ## CLI
 
+The CLI provides 22 commands for syncing, viewing, analyzing, and exporting health data from all supported platforms.
+
 ```bash
-# Sync health data from Oura
-health sync --driver oura --token YOUR_TOKEN --start 2025-01-01 --output ./data
+# Sync all health data from any platform
+health sync --driver oura --token YOUR_TOKEN --days 30 --output ./data
+health sync --driver withings --token YOUR_TOKEN --days 60
 
-# View sleep data
-health sleep --token YOUR_TOKEN --start 2025-01-01
+# View specific health metrics
+health sleep --driver oura --token YOUR_TOKEN --days 7
+health activity --driver oura --token YOUR_TOKEN --days 7
+health workouts --driver oura --token YOUR_TOKEN --days 30
+health hr --driver oura --token YOUR_TOKEN --days 1
+health hrv --driver oura --token YOUR_TOKEN --days 14
+health readiness --driver oura --token YOUR_TOKEN --days 7
+health spo2 --driver oura --token YOUR_TOKEN --days 7
+health stress --driver oura --token YOUR_TOKEN --days 7
+health body-temp --driver oura --token YOUR_TOKEN --days 14
+health vo2max --driver oura --token YOUR_TOKEN --days 30
 
-# View readiness scores
-health readiness --token YOUR_TOKEN --start 2025-01-01
+# Smart scale data
+health weight --driver withings --token YOUR_TOKEN --days 30
+health body --driver withings --token YOUR_TOKEN --days 30
+health body --driver renpho --email you@example.com --password pass123
 
-# Full training readiness analysis
-health analyze --token YOUR_TOKEN --days 14
+# Analysis commands
+health analyze --driver oura --token YOUR_TOKEN --days 14
+health recovery --driver oura --token YOUR_TOKEN --days 14
+health sleep-quality --driver oura --token YOUR_TOKEN --days 7
+health sleep-debt --driver oura --token YOUR_TOKEN --days 14 --target 480
+health trends --driver oura --token YOUR_TOKEN --days 30
+health trends --driver withings --token YOUR_TOKEN --days 60 --metrics weight
 
-# Show version
-health version
+# Overview & comparison
+health dashboard --driver oura --token YOUR_TOKEN
+health compare --driver oura --token YOUR_TOKEN --days 14
+
+# Export & profile
+health export --driver oura --token YOUR_TOKEN --days 90 --output ./export.json
+health profile --driver oura --token YOUR_TOKEN
+
+# JSON output for any command
+health sleep --driver oura --token YOUR_TOKEN --format json
 ```
 
 ## Supported Platforms & Metrics
@@ -400,6 +501,24 @@ health version
 | VO2 Max | Estimated | - | From workouts | Cardio score |
 | Activity | Steps, calories, MET | Strain, kilojoules | Steps, calories, distance | Steps, calories, zones |
 | Workouts | Type, duration, intensity | Type, strain, HR zones | Type, duration, distance | Type, duration, HR |
+| Body Composition | - | - | Weight, fat %, lean mass | Weight, fat % (Aria) |
+
+### Smart Scales
+
+| Metric | Withings | Renpho |
+|--------|----------|--------|
+| Weight | Yes | Yes |
+| BMI | Yes | Yes |
+| Body Fat % | Yes | Yes |
+| Muscle Mass | Yes | Yes |
+| Bone Mass | Yes | Yes |
+| Water % | Yes | Yes |
+| Visceral Fat | Yes | Yes |
+| BMR | Yes | Yes |
+| Protein % | - | Yes |
+| Subcutaneous Fat | - | Yes |
+| Skeletal Muscle % | - | Yes |
+| Heart Rate | Yes (Body Cardio/Comp) | - |
 
 ### Smartwatch Devices
 
@@ -456,6 +575,18 @@ health version
 3. Complete the OAuth flow to get an access token
 4. Use with `createFitbitDriver(accessToken)`
 
+### Withings Smart Scales
+
+1. Register at [Withings Developer Portal](https://developer.withings.com/)
+2. Create an OAuth 2.0 application
+3. Complete the OAuth flow to get an access token
+4. Use with `createWithingsDriver(accessToken)`
+
+### Renpho Smart Scales
+
+1. Use your existing Renpho account credentials
+2. Use with `createRenphoDriver({ email: '...', password: '...' })`
+
 ### Garmin (USB)
 
 1. Connect your Garmin watch via USB
@@ -481,9 +612,18 @@ import type { HealthConfig } from 'ts-health'
 const config: HealthConfig = {
   verbose: true,
   outputDir: './health-data',
-  drivers: ['oura'],
+  drivers: ['oura', 'withings'],
   oura: {
     personalAccessToken: 'your-token',
+  },
+  withings: {
+    clientId: 'your-client-id',
+    clientSecret: 'your-client-secret',
+    accessToken: 'your-access-token',
+  },
+  renpho: {
+    email: 'your-email@example.com',
+    password: 'your-password',
   },
 }
 
