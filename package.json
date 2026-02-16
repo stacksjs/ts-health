@@ -1,0 +1,51 @@
+{
+  "name": "ts-health",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "TypeScript library for health & fitness data from Oura Ring, WHOOP, Apple Health, Fitbit, and more.",
+  "author": "Chris Breuer <chris@stacksjs.org>",
+  "license": "MIT",
+  "homepage": "https://github.com/stacksjs/ts-health#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stacksjs/ts-health.git"
+  },
+  "bugs": {
+    "url": "https://github.com/stacksjs/ts-health/issues"
+  },
+  "keywords": [
+    "oura",
+    "oura-ring",
+    "whoop",
+    "fitbit",
+    "apple-health",
+    "health",
+    "fitness",
+    "sleep",
+    "hrv",
+    "readiness",
+    "recovery",
+    "training",
+    "typescript",
+    "bun"
+  ],
+  "scripts": {
+    "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
+    "test": "bun test",
+    "lint": "bunx --bun eslint .",
+    "lint:fix": "bunx --bun eslint . --fix",
+    "changelog": "bunx logsmith --verbose",
+    "changelog:generate": "bunx logsmith --output CHANGELOG.md",
+    "release": "bun run changelog:generate && bunx bumpx prompt --recursive",
+    "dev:docs": "bun --bun bunpress dev",
+    "build:docs": "bun --bun bunpress build",
+    "preview:docs": "bun --bun bunpress preview",
+    "typecheck": "bun --bun tsc --noEmit"
+  },
+  "devDependencies": {
+    "better-dx": "^0.2.5"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}
