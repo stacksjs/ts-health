@@ -1,120 +1,88 @@
-# Using with ts-watches
+# Device Data Integration
 
-ts-health is designed to complement [`ts-watches`](https://github.com/stacksjs/ts-watches). Together they cover the full spectrum of fitness data: ts-watches handles device-level hardware data while ts-health handles cloud platform APIs.
+ts-health includes [`ts-watches`](https://github.com/stacksjs/ts-watches) as a built-in dependency, giving you full access to smartwatch device drivers, FIT file parsing, training metrics, data export, cloud integrations, and real-time sensor connectivity — all from a single `ts-health` import.
 
-## What Each Library Does
+## What's Included
 
-| Capability | ts-watches | ts-health |
-|-----------|-----------|-----------|
-| FIT file parsing | Binary FIT protocol parser | - |
-| USB device download | Garmin, Polar, Suunto, Coros, Wahoo | - |
-| Cloud APIs | Garmin Connect, Strava | Oura, WHOOP, Fitbit |
-| Apple Health | XML export (activity focus) | XML export (health focus) |
-| GPS/Activity data | Full GPS tracks, laps, records | Workout summaries |
-| Training metrics | TSS, NP, IF, CTL, ATL, TSB | Readiness, recovery scoring |
-| Health monitoring | HR, sleep, stress from FIT files | Sleep, HRV, readiness from APIs |
-| Sleep analysis | Basic stage data from devices | Quality scoring, debt tracking |
-| Real-time sensors | ANT+, BLE | - |
-| Export formats | GPX, TCX, CSV, GeoJSON | JSON |
+Everything from ts-watches is re-exported through ts-health:
 
-## Installation
+| Module | What It Does |
+|--------|-------------|
+| **Device Drivers** | Garmin, Polar, Suunto, Coros, Wahoo, Apple Watch |
+| **FIT Parsing** | Binary FIT protocol parser for any device |
+| **Data Export** | GPX, TCX, CSV, GeoJSON |
+| **Cloud** | Garmin Connect, Strava, TrainingPeaks |
+| **Analysis** | TSS, NP, IF, CTL/ATL/TSB, zones, race predictions |
+| **Workouts** | Workout builder, course files, training plans |
+| **Real-time** | ANT+, BLE, live tracking |
 
-Since ts-watches is not yet published to npm, link it locally:
+## Single Import
 
-```bash
-# In the ts-watches directory
-cd ~/Code/Libraries/ts-watches/packages/ts-watches
-bun link
-
-# In the ts-health directory
-cd ~/Code/Libraries/ts-health/packages/health
-bun link ts-watches
-```
-
-## Combined Usage
-
-### Device Data + Cloud Health Data
-
-Download activity data from a Garmin watch and combine it with readiness data from Oura:
+You don't need to install ts-watches separately. Everything is available from `ts-health`:
 
 ```typescript
-import { createGarminDriver } from 'ts-watches'
-import { createOuraDriver, createReadinessAnalyzer } from 'ts-health'
+// Health platform APIs
+import { createOuraDriver, createWhoopDriver, createFitbitDriver } from 'ts-health'
 
-// Get device data
-const garmin = createGarminDriver()
-const devices = await garmin.detectDevices()
+// Device drivers (from ts-watches)
+import { createGarminDriver, createPolarDriver } from 'ts-health'
 
-if (devices.length > 0) {
-  const result = await garmin.downloadData(devices[0], {
-    includeActivities: true,
-    includeMonitoring: true,
-  })
+// FIT parsing (from ts-watches)
+import { parseFITFile } from 'ts-health'
 
-  console.log(`Downloaded ${result.activities.length} activities`)
+// Training metrics (from ts-watches)
+import { calculateTSS, ZoneCalculator, RacePredictor } from 'ts-health'
 
-  // Get Oura readiness
-  const oura = createOuraDriver('oura-token')
-  const readiness = await oura.getReadiness({
-    startDate: '2025-01-01',
-    endDate: '2025-01-14',
-  })
+// Data export (from ts-watches)
+import { exportToGPX, exportToTCX } from 'ts-health'
 
-  // Correlate: did high readiness predict good workouts?
-  for (const activity of result.activities) {
-    const day = activity.startTime.toISOString().slice(0, 10)
-    const dayReadiness = readiness.find(r => r.day === day)
+// Cloud (from ts-watches)
+import { createGarminConnectClient, createStravaClient } from 'ts-health'
 
-    if (dayReadiness) {
-      console.log(`${day}: readiness ${dayReadiness.score} -> ${activity.sport} ${(activity.totalDistance / 1000).toFixed(1)}km`)
-    }
-  }
-}
+// Real-time (from ts-watches)
+import { createANTClient, createBLEClient } from 'ts-health'
 ```
+
+## Health + Device Data
+
+The real power of ts-health is combining health platform APIs with device-level data:
 
 ### Training Load + Recovery
 
-Use ts-watches for training load calculations and ts-health for recovery monitoring:
-
 ```typescript
-import { calculateTSS, ZoneCalculator } from 'ts-watches'
-import { createOuraDriver, createRecoveryAnalyzer } from 'ts-health'
+import {
+  createGarminDriver,
+  createOuraDriver,
+  calculateTSS,
+  createRecoveryAnalyzer,
+} from 'ts-health'
 
-// Calculate training stress from watch data
-const zones = new ZoneCalculator({ maxHR: 185, restingHR: 50, ftp: 250 })
-const tss = calculateTSS(activity, { ftp: 250 })
-console.log(`Today's TSS: ${tss}`)
+// Training stress from Garmin watch
+const garmin = createGarminDriver()
+const devices = await garmin.detectDevices()
+const data = await garmin.downloadData(devices[0], { includeActivities: true })
+const tss = calculateTSS(data.activities[0], { ftp: 250 })
 
-// Check recovery status from Oura
+// Recovery from Oura Ring
 const oura = createOuraDriver('oura-token')
 const recovery = createRecoveryAnalyzer()
 const range = { startDate: '2025-01-01', endDate: '2025-01-14' }
-
-const [sleep, hrv] = await Promise.all([
-  oura.getSleep(range),
-  oura.getHRV(range),
-])
-
+const [sleep, hrv] = await Promise.all([oura.getSleep(range), oura.getHRV(range)])
 const status = recovery.calculateRecovery({ sleep, hrv })
-console.log(`Recovery: ${status.status} (${status.score}/100)`)
 
-// Decision logic
-if (tss > 100 && status.status !== 'fully_recovered') {
-  console.log('High training load with incomplete recovery - consider an easy day')
-}
+console.log(`TSS: ${tss} | Recovery: ${status.status} (${status.score}/100)`)
 ```
 
-### Race Predictions with Health Context
+### Race Prep with Readiness
 
 ```typescript
-import { RacePredictor } from 'ts-watches'
-import { createOuraDriver, createReadinessAnalyzer } from 'ts-health'
+import { RacePredictor, createOuraDriver, createReadinessAnalyzer } from 'ts-health'
 
+// Race time predictions
 const predictor = new RacePredictor()
-const predictions = predictor.predictFromPerformance(5000, 20 * 60) // 5K in 20min
-console.log(`Predicted marathon: ${Math.floor(predictions.marathon / 60)}:${(predictions.marathon % 60).toFixed(0).padStart(2, '0')}`)
+const predictions = predictor.predictFromPerformance(5000, 20 * 60)
 
-// Adjust expectations based on readiness
+// Check if you're ready to race
 const oura = createOuraDriver('oura-token')
 const analyzer = createReadinessAnalyzer()
 const readiness = analyzer.calculateTrainingReadiness({
@@ -122,33 +90,35 @@ const readiness = analyzer.calculateTrainingReadiness({
   hrv: await oura.getHRV({ startDate: '2025-01-01' }),
 })
 
-if (readiness.recommendation === 'rest' || readiness.recommendation === 'easy_day') {
-  console.log('Note: Current readiness is low - race-day performance may be impacted')
+if (readiness.recommendation === 'go_hard') {
+  console.log(`You're ready! Target marathon: ${formatTime(predictions.marathon)}`)
+} else {
+  console.log(`Hold off — readiness is ${readiness.score}/100`)
 }
 ```
 
 ## Data Type Compatibility
 
-ts-watches and ts-health share similar health monitoring types (both have sleep, HR, HRV data). However, they use different type definitions since they serve different purposes:
+Health platform types and device types serve different purposes:
 
-- **ts-watches types**: Designed around FIT file records (timestamps as `Date`, values from binary parsing)
-- **ts-health types**: Designed around API responses (timestamps as ISO strings, values from JSON)
+- **Health types** (SleepSession, HRVSample, etc.) — Designed around API responses, ISO string timestamps, JSON values
+- **Device types** (Activity, MonitoringData, etc.) — Designed around FIT file records, Date timestamps, binary-parsed values
 
-When combining data, map between the two as needed:
+When combining data, map between them as needed:
 
 ```typescript
-import type { SleepData } from 'ts-watches'
-import type { SleepSession } from 'ts-health'
+import type { SleepData } from 'ts-health'  // Device sleep (from FIT)
+import type { SleepSession } from 'ts-health'  // API sleep (from Oura/WHOOP/etc.)
 
-// Convert ts-watches sleep to ts-health format
-function mapWatchSleep(watchSleep: SleepData): Partial<SleepSession> {
+// Convert device sleep to health format
+function mapDeviceSleep(deviceSleep: SleepData): Partial<SleepSession> {
   return {
-    day: watchSleep.date.toISOString().slice(0, 10),
-    totalSleepDuration: watchSleep.totalSleepTime * 60, // minutes to seconds
-    deepSleepDuration: watchSleep.deepSleepTime * 60,
-    lightSleepDuration: watchSleep.lightSleepTime * 60,
-    remSleepDuration: watchSleep.remSleepTime * 60,
-    awakeTime: watchSleep.awakeTime * 60,
+    day: deviceSleep.date.toISOString().slice(0, 10),
+    totalSleepDuration: deviceSleep.totalSleepTime * 60,
+    deepSleepDuration: deviceSleep.deepSleepTime * 60,
+    lightSleepDuration: deviceSleep.lightSleepTime * 60,
+    remSleepDuration: deviceSleep.remSleepTime * 60,
+    awakeTime: deviceSleep.awakeTime * 60,
     source: 'garmin',
   }
 }

@@ -2,13 +2,159 @@
 export * from './config'
 export * from './types'
 
-// Device drivers
+// Health platform drivers (Oura, WHOOP, Apple Health, Fitbit)
 export * from './drivers'
 
-// Analysis tools
+// Health analysis tools (sleep, readiness, recovery, trends)
 export * from './analysis'
 
-// Re-export commonly used types for convenience
+// Re-export ts-watches: smartwatch device drivers, FIT parsing, training metrics, and more
+export {
+  // FIT file parsing
+  FitParser,
+  FitDecoder,
+  FitParseError,
+  fitTimestampToDate,
+  semicirclesToDegrees,
+  degreesToSemicircles,
+
+  // Device drivers
+  createGarminDriver,
+  GarminDriver,
+  createPolarDriver,
+  PolarDriver,
+  createSuuntoDriver,
+  SuuntoDriver,
+  createCorosDriver,
+  CorosDriver,
+  createWahooDriver,
+  WahooDriver,
+  createAppleDriver,
+  AppleDriver,
+
+  // Data export
+  activityToGpx,
+  writeGpx,
+  activityToTcx,
+  writeTcx,
+  activityToCsv,
+  activitySummaryToCsv,
+  lapsToCsv,
+  heartRateToCsv,
+  sleepToCsv,
+  stressToCsv,
+  writeCsv,
+  activityToGeoJson,
+  recordsToGeoJsonPoints,
+  activitiesToGeoJson,
+  writeGeoJson,
+
+  // Cloud integrations
+  createGarminConnectClient,
+  GarminConnectClient,
+  createStravaClient,
+  StravaClient,
+  activityToStravaUpload,
+
+  // Training analysis
+  TrainingLoadCalculator,
+  createTrainingLoadCalculator,
+  ZoneCalculator,
+  createZoneCalculator,
+  RacePredictor,
+  createRacePredictor,
+  estimateMaxHrByAge,
+  estimateLthrFromMaxHr,
+  calculateHrReserve,
+  calculateTargetHr,
+  RACE_DISTANCES,
+
+  // Workout tools
+  WorkoutBuilder,
+  createWorkout,
+  workoutTemplates,
+  formatWorkoutDuration,
+  formatWorkoutTarget,
+
+  // Real-time data
+  createAntPlusScanner,
+  MockAntPlusScanner,
+  calculateWheelSpeed,
+  calculateCadence,
+  ANT_PLUS_PROFILES,
+  createBleScanner,
+  MockBleScanner,
+  parseHeartRateMeasurement,
+  parseCscMeasurement,
+  parsePowerMeasurement,
+  BLE_SERVICES,
+  BLE_CHARACTERISTICS,
+} from 'ts-watches'
+
+// Re-export ts-watches types (avoiding conflicts with ts-health Workout type)
+export type {
+  Activity,
+  ActivityLap,
+  ActivityRecord,
+  MonitoringData,
+  WatchDevice,
+  GarminDevice,
+  DownloadResult,
+  DownloadOptions,
+  WatchDriver,
+  SleepData,
+  StressData,
+  HRVData,
+  SpO2Data,
+  DailyHeartRate,
+  BodyBattery,
+  DailySteps,
+  GeoPosition,
+  SportType,
+  SubSportType,
+  FitMessage,
+  FitParseResult,
+  GpxOptions,
+  TcxOptions,
+  CsvOptions,
+  GeoJsonFeature,
+  GeoJsonFeatureCollection,
+  GeoJsonOptions,
+  GarminConnectConfig,
+  GarminActivitySummary,
+  DailySummary,
+  StravaConfig,
+  StravaTokens,
+  StravaAthlete,
+  StravaActivitySummary,
+  StravaUploadResponse,
+  TrainingLoadMetrics,
+  DailyTrainingLoad,
+  TrainingLoadConfig,
+  Zone,
+  ZoneConfig,
+  ZoneDistribution,
+  ZoneAnalysis,
+  RacePrediction,
+  PredictorInput,
+  FitnessEstimate,
+  AntPlusDevice,
+  AntPlusDeviceType,
+  AntPlusScanner,
+  BleDevice,
+  BleDeviceType,
+  BleScanner,
+  PolarDevice,
+  SuuntoDevice,
+  CorosDevice,
+  WahooDevice,
+  AppleDevice,
+} from 'ts-watches'
+
+// Re-export ts-watches Workout type with alias to avoid conflict with ts-health Workout
+export type { Workout as WatchWorkout } from 'ts-watches'
+
+// Re-export commonly used health types for convenience
 export type {
   HealthConfig,
   HealthOptions,

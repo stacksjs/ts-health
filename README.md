@@ -8,44 +8,74 @@
 
 # ts-health
 
-A comprehensive TypeScript library for health and fitness data from Oura Ring, WHOOP, Apple Health, Fitbit, and more. Built for training apps that need sleep, readiness, HRV, heart rate, and recovery data across platforms.
+A comprehensive TypeScript library for health, fitness, and smartwatch data. Unified access to Oura Ring, WHOOP, Apple Health, Fitbit, Garmin, Polar, Suunto, Coros, and Wahoo — with FIT file parsing, training metrics, data export, and more. Built for training apps.
 
 ## Features
 
-### Platform Support
+### Health Platform APIs
 
 - **Oura Ring** - Full API v2 support: sleep, readiness, activity, heart rate, HRV, SpO2, stress, body temperature, VO2 max, sessions, tags, rest mode
 - **WHOOP** - Recovery, strain, sleep, workouts, HRV, SpO2, skin temperature
 - **Apple Health** - XML export parsing for sleep stages, heart rate, HRV, steps, workouts, SpO2, VO2 max
 - **Fitbit** - Sleep stages, activity summaries, intraday heart rate, HRV, SpO2, skin temperature, cardio score
 
-### Health Data
+### Smartwatch & Device Support
 
-- **Sleep** - Duration, stages (deep, light, REM, awake), efficiency, latency, sleep phases
+- **Garmin** - USB download, device detection, FIT file parsing, Garmin Connect API
+- **Polar** - Device data download and parsing
+- **Suunto** - Device data download and parsing
+- **Coros** - Device data download and parsing
+- **Wahoo** - Device data download and parsing
+- **Apple Watch** - Activity and health data from device exports
+
+### FIT File Parsing
+
+- Binary FIT protocol parser for activity files from any device
+- Full support for activity records, laps, sessions, GPS tracks
+- Monitoring data: daily HR, steps, stress, sleep, body battery
+- Sport type and sub-sport type classification
+
+### Training Analysis
+
+- **Training Load** - TSS (Training Stress Score), NP (Normalized Power), IF (Intensity Factor)
+- **Training Readiness** - HRV trends, sleep quality, recovery, resting HR, activity balance, sleep debt
+- **Recovery Analysis** - Sleep-based, HRV trend, resting HR trend, strain balance scoring
+- **Zone Calculator** - HR and power zones based on thresholds
+- **Race Predictor** - Race time predictions from performance data
+- **CTL/ATL/TSB** - Chronic Training Load, Acute Training Load, Training Stress Balance
+
+### Health Monitoring
+
+- **Sleep** - Duration, stages (deep, light, REM, awake), efficiency, latency, quality scoring, debt tracking
 - **Readiness** - Daily readiness scores with contributor breakdowns
-- **Heart Rate** - Continuous monitoring, resting HR
-- **HRV** - Heart rate variability from sleep and throughout the day
-- **Activity** - Steps, calories, active minutes, movement metrics
+- **Heart Rate** - Continuous monitoring, resting HR, intraday data
+- **HRV** - Heart rate variability (RMSSD, SDNN) from sleep and throughout the day
+- **Activity** - Steps, calories, active minutes, movement metrics, strain
 - **SpO2** - Blood oxygen saturation
 - **Stress** - Stress levels and recovery periods
 - **Body Temperature** - Skin temperature deviations and trends
 - **VO2 Max** - Cardio fitness estimates
-- **Workouts** - Activity type, duration, calories, distance, heart rate
+- **Workouts** - Activity type, duration, calories, distance, heart rate, GPS tracks
 
-### Training Analysis
+### Data Export
 
-- **Sleep Quality Scoring** - Duration, efficiency, deep/REM proportions, latency, consistency
-- **Training Readiness** - HRV trends, sleep quality, recovery, resting HR, activity balance, sleep debt
-- **Recovery Analysis** - Sleep-based, HRV trend, resting HR trend, strain balance scoring
-- **Health Trends** - Moving averages, anomaly detection, multi-metric trend analysis
-- **Sleep Debt** - Accumulation tracking with recovery estimates
+- **GPX** - GPS Exchange Format for route/track sharing
+- **TCX** - Training Center XML for workout uploads
+- **CSV** - Spreadsheet-compatible data export
+- **GeoJSON** - Geographic data for mapping applications
+
+### Real-time Sensors
+
+- **ANT+** - Connect to ANT+ heart rate monitors, power meters, speed/cadence sensors
+- **BLE** - Bluetooth Low Energy sensor connectivity
+- **Live Tracking** - Real-time data streaming from connected sensors
 
 ### Developer Experience
 
 - **TypeScript** - Fully typed APIs with comprehensive type exports
-- **CLI Tool** - Sync, view, and analyze health data from command line
-- **Unified Interface** - Same `HealthDriver` interface across all platforms
-- **Works with ts-watches** - Complements smartwatch device-level data
+- **CLI Tool** - Sync, view, and analyze health data from the command line
+- **Unified Interface** - Same `HealthDriver` interface across all health platforms
+- **Single Package** - All device + platform support in one import
 
 ## Install
 
@@ -54,6 +84,8 @@ bun install ts-health
 ```
 
 ## Quick Start
+
+### Health Platform Data (Oura, WHOOP, Fitbit)
 
 ```typescript
 import { createOuraDriver } from 'ts-health'
@@ -71,6 +103,66 @@ for (const session of sleep) {
   const mins = Math.floor((session.totalSleepDuration % 3600) / 60)
   console.log(`${session.day}: ${hours}h ${mins}m | efficiency: ${session.efficiency}%`)
 }
+```
+
+### Smartwatch Device Data (Garmin, Polar, Suunto, Coros, Wahoo)
+
+```typescript
+import { createGarminDriver, parseFITFile } from 'ts-health'
+
+// Download directly from a connected Garmin device
+const garmin = createGarminDriver()
+const devices = await garmin.detectDevices()
+if (devices.length > 0) {
+  const result = await garmin.downloadData(devices[0], {
+    includeActivities: true,
+    includeMonitoring: true,
+  })
+  console.log(`Downloaded ${result.activities.length} activities`)
+}
+
+// Or parse any FIT file
+const activity = await parseFITFile('/path/to/activity.fit')
+console.log(`Sport: ${activity.sport} | Distance: ${(activity.totalDistance / 1000).toFixed(1)}km`)
+```
+
+### Training Load & Metrics
+
+```typescript
+import { calculateTSS, calculateNormalizedPower, ZoneCalculator } from 'ts-health'
+
+// Calculate training metrics from activity data
+const tss = calculateTSS(activity, { ftp: 250 })
+const np = calculateNormalizedPower(activity)
+console.log(`TSS: ${tss} | NP: ${np}W`)
+
+// Power and HR zone calculations
+const zones = new ZoneCalculator({ maxHR: 185, restingHR: 50, ftp: 250 })
+```
+
+### Data Export
+
+```typescript
+import { exportToGPX, exportToTCX, exportToCSV } from 'ts-health'
+
+// Export activity to various formats
+await exportToGPX(activity, '/path/to/output.gpx')
+await exportToTCX(activity, '/path/to/output.tcx')
+await exportToCSV(activity, '/path/to/output.csv')
+```
+
+### Cloud Integrations
+
+```typescript
+import { createGarminConnectClient, createStravaClient } from 'ts-health'
+
+// Sync from Garmin Connect
+const garminConnect = createGarminConnectClient({ username: '...', password: '...' })
+const activities = await garminConnect.getActivities({ start: 0, limit: 10 })
+
+// Upload to Strava
+const strava = createStravaClient({ accessToken: '...' })
+await strava.uploadActivity('/path/to/activity.fit')
 ```
 
 ## Usage Examples
@@ -186,6 +278,45 @@ console.log(`Recommendation: ${result.recommendation}`)
 console.log(result.details)
 ```
 
+### Combine Device + Platform Data
+
+```typescript
+import {
+  createGarminDriver,
+  createOuraDriver,
+  createRecoveryAnalyzer,
+  calculateTSS,
+} from 'ts-health'
+
+// Training stress from your Garmin watch
+const garmin = createGarminDriver()
+const devices = await garmin.detectDevices()
+const data = await garmin.downloadData(devices[0], { includeActivities: true })
+const tss = calculateTSS(data.activities[0], { ftp: 250 })
+
+// Recovery status from Oura Ring
+const oura = createOuraDriver('oura-token')
+const recovery = createRecoveryAnalyzer()
+const range = { startDate: '2025-01-01', endDate: '2025-01-14' }
+const [sleep, hrv] = await Promise.all([oura.getSleep(range), oura.getHRV(range)])
+const status = recovery.calculateRecovery({ sleep, hrv })
+
+console.log(`TSS: ${tss} | Recovery: ${status.status} (${status.score}/100)`)
+if (tss > 100 && status.status !== 'fully_recovered') {
+  console.log('High training load + incomplete recovery — consider an easy day')
+}
+```
+
+### Race Predictions
+
+```typescript
+import { RacePredictor } from 'ts-health'
+
+const predictor = new RacePredictor()
+const predictions = predictor.predictFromPerformance(5000, 20 * 60) // 5K in 20min
+console.log(`Predicted marathon: ${Math.floor(predictions.marathon / 60)}:${(predictions.marathon % 60).toFixed(0).padStart(2, '0')}`)
+```
+
 ### Sleep Quality Analysis
 
 ```typescript
@@ -209,18 +340,6 @@ console.log(`Sleep consistency: ${consistency}/100`)
 // Sleep debt analysis
 const debt = analyzer.analyzeSleepDebt(sessions)
 console.log(`Sleep debt: ${debt.currentDebtMinutes} minutes | Trend: ${debt.trend}`)
-```
-
-### Recovery Analysis
-
-```typescript
-import { createRecoveryAnalyzer } from 'ts-health'
-
-const recovery = createRecoveryAnalyzer()
-const result = recovery.calculateRecovery({ sleep, hrv, activity })
-
-console.log(`Recovery: ${result.score}/100 (${result.status})`)
-// => "fully_recovered" | "mostly_recovered" | "partially_recovered" | "not_recovered"
 ```
 
 ### Health Trends
@@ -264,7 +383,9 @@ health analyze --token YOUR_TOKEN --days 14
 health version
 ```
 
-## Supported Health Metrics
+## Supported Platforms & Metrics
+
+### Health Platform APIs
 
 | Metric | Oura | WHOOP | Apple Health | Fitbit |
 |--------|------|-------|-------------|--------|
@@ -279,6 +400,32 @@ health version
 | VO2 Max | Estimated | - | From workouts | Cardio score |
 | Activity | Steps, calories, MET | Strain, kilojoules | Steps, calories, distance | Steps, calories, zones |
 | Workouts | Type, duration, intensity | Type, strain, HR zones | Type, duration, distance | Type, duration, HR |
+
+### Smartwatch Devices
+
+| Capability | Garmin | Polar | Suunto | Coros | Wahoo | Apple Watch |
+|-----------|--------|-------|--------|-------|-------|-------------|
+| USB Download | Yes | Yes | Yes | Yes | Yes | - |
+| FIT Parsing | Yes | Yes | Yes | Yes | Yes | - |
+| GPS Tracks | Yes | Yes | Yes | Yes | Yes | Yes |
+| HR Data | Yes | Yes | Yes | Yes | Yes | Yes |
+| Cloud Sync | Garmin Connect | - | - | - | - | - |
+| Activities | Full records + laps | Records + laps | Records + laps | Records + laps | Records + laps | Workout summaries |
+| Monitoring | HR, stress, sleep, body battery | HR, sleep | HR, sleep | HR, sleep | HR | HR, sleep |
+| Export | GPX, TCX, CSV, GeoJSON | GPX, TCX, CSV | GPX, TCX, CSV | GPX, TCX, CSV | GPX, TCX, CSV | - |
+
+### Training Metrics
+
+| Metric | Description |
+|--------|------------|
+| TSS | Training Stress Score — normalized training load per session |
+| NP | Normalized Power — weighted average power accounting for variability |
+| IF | Intensity Factor — ratio of NP to FTP |
+| CTL | Chronic Training Load — long-term fitness trend |
+| ATL | Acute Training Load — short-term fatigue |
+| TSB | Training Stress Balance — freshness (CTL - ATL) |
+| HR Zones | Heart rate training zones (5 or 7 zone models) |
+| Power Zones | Power-based training zones from FTP |
 
 ## Platform Setup
 
@@ -308,6 +455,22 @@ health version
 2. Create an OAuth 2.0 application
 3. Complete the OAuth flow to get an access token
 4. Use with `createFitbitDriver(accessToken)`
+
+### Garmin (USB)
+
+1. Connect your Garmin watch via USB
+2. Use `createGarminDriver()` to detect and download
+
+### Garmin Connect (Cloud)
+
+1. Use your Garmin Connect credentials
+2. Use `createGarminConnectClient({ username, password })`
+
+### Strava
+
+1. Register at [Strava Developer Portal](https://developers.strava.com/)
+2. Create an OAuth application
+3. Use `createStravaClient({ accessToken })`
 
 ## Configuration
 
@@ -353,7 +516,7 @@ For casual chit-chat with others using this package:
 
 ## Postcardware
 
-“Software that is free, but hopes for a postcard.” We love receiving postcards from around the world showing where Stacks is being used! We showcase them on our website too.
+"Software that is free, but hopes for a postcard." We love receiving postcards from around the world showing where Stacks is being used! We showcase them on our website too.
 
 Our address: Stacks.js, 12665 Village Ln #2306, Playa Vista, CA 90094, United States
 

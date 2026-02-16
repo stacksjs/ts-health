@@ -4,7 +4,9 @@ There are two ways of using ts-health: _as a library or as a CLI._
 
 ## Library
 
-### Oura Ring
+### Health Platform APIs
+
+#### Oura Ring
 
 The Oura driver uses the Oura Ring API v2 with a Personal Access Token:
 
@@ -56,7 +58,7 @@ const tags = await oura.getTags(range)
 const restMode = await oura.getRestModePeriods(range)
 ```
 
-### WHOOP
+#### WHOOP
 
 The WHOOP driver maps WHOOP's strain/recovery model to the unified health interface:
 
@@ -86,7 +88,7 @@ const spo2 = await whoop.getSpO2(range)
 const temp = await whoop.getBodyTemperature(range)
 ```
 
-### Apple Health
+#### Apple Health
 
 The Apple Health driver parses the XML export from the Health app:
 
@@ -106,7 +108,7 @@ const vo2 = await apple.getVO2Max({ startDate: '2025-01-01' })
 const temp = await apple.getBodyTemperature({ startDate: '2025-01-01' })
 ```
 
-### Fitbit
+#### Fitbit
 
 The Fitbit driver uses the Fitbit Web API:
 
@@ -124,6 +126,139 @@ const spo2 = await fitbit.getSpO2(range)
 const temp = await fitbit.getBodyTemperature(range)
 const vo2 = await fitbit.getVO2Max(range)
 const workouts = await fitbit.getWorkouts(range)
+```
+
+### Smartwatch & Device Data
+
+#### Garmin USB Download
+
+```typescript
+import { createGarminDriver } from 'ts-health'
+
+const garmin = createGarminDriver()
+
+// Detect connected devices
+const devices = await garmin.detectDevices()
+console.log(`Found ${devices.length} device(s)`)
+
+// Download activities and monitoring data
+if (devices.length > 0) {
+  const result = await garmin.downloadData(devices[0], {
+    includeActivities: true,
+    includeMonitoring: true,
+  })
+
+  for (const activity of result.activities) {
+    console.log(`${activity.sport}: ${(activity.totalDistance / 1000).toFixed(1)}km`)
+  }
+}
+```
+
+#### FIT File Parsing
+
+```typescript
+import { parseFITFile } from 'ts-health'
+
+const activity = await parseFITFile('/path/to/activity.fit')
+console.log(`Sport: ${activity.sport}`)
+console.log(`Distance: ${(activity.totalDistance / 1000).toFixed(2)}km`)
+console.log(`Duration: ${activity.totalTimerTime}s`)
+console.log(`Avg HR: ${activity.avgHeartRate}bpm`)
+
+// GPS tracks
+for (const record of activity.records) {
+  if (record.positionLat && record.positionLong) {
+    console.log(`${record.positionLat}, ${record.positionLong}`)
+  }
+}
+```
+
+#### Other Devices
+
+```typescript
+import {
+  createPolarDriver,
+  createSuuntoDriver,
+  createCorosDriver,
+  createWahooDriver,
+} from 'ts-health'
+
+const polar = createPolarDriver()
+const suunto = createSuuntoDriver()
+const coros = createCorosDriver()
+const wahoo = createWahooDriver()
+```
+
+### Training Metrics
+
+#### TSS, NP, IF
+
+```typescript
+import { calculateTSS, calculateNormalizedPower, calculateIntensityFactor } from 'ts-health'
+
+const tss = calculateTSS(activity, { ftp: 250 })
+const np = calculateNormalizedPower(activity)
+const iif = calculateIntensityFactor(activity, { ftp: 250 })
+console.log(`TSS: ${tss.toFixed(0)} | NP: ${np}W | IF: ${iif.toFixed(2)}`)
+```
+
+#### Zone Calculator
+
+```typescript
+import { ZoneCalculator } from 'ts-health'
+
+const zones = new ZoneCalculator({ maxHR: 185, restingHR: 50, ftp: 250 })
+const hrZones = zones.getHRZones()
+const powerZones = zones.getPowerZones()
+```
+
+#### Race Predictions
+
+```typescript
+import { RacePredictor } from 'ts-health'
+
+const predictor = new RacePredictor()
+const predictions = predictor.predictFromPerformance(5000, 20 * 60) // 5K in 20min
+console.log(`Marathon prediction: ${Math.floor(predictions.marathon / 60)}min`)
+```
+
+#### Training Load (CTL/ATL/TSB)
+
+```typescript
+import { TrainingLoadCalculator } from 'ts-health'
+
+const calculator = new TrainingLoadCalculator()
+const load = calculator.calculateTrainingLoad(dailyTSSValues)
+console.log(`CTL: ${load.ctl.toFixed(1)} | ATL: ${load.atl.toFixed(1)} | TSB: ${load.tsb.toFixed(1)}`)
+```
+
+### Data Export
+
+```typescript
+import { exportToGPX, exportToTCX, exportToCSV, exportToGeoJSON } from 'ts-health'
+
+await exportToGPX(activity, '/path/to/output.gpx')
+await exportToTCX(activity, '/path/to/output.tcx')
+await exportToCSV(activity, '/path/to/output.csv')
+await exportToGeoJSON(activity, '/path/to/output.geojson')
+```
+
+### Cloud Integrations
+
+```typescript
+import { createGarminConnectClient, createStravaClient, createTrainingPeaksClient } from 'ts-health'
+
+// Garmin Connect
+const garminConnect = createGarminConnectClient({ username: '...', password: '...' })
+const activities = await garminConnect.getActivities({ start: 0, limit: 10 })
+
+// Strava
+const strava = createStravaClient({ accessToken: '...' })
+await strava.uploadActivity('/path/to/activity.fit')
+
+// TrainingPeaks
+const tp = createTrainingPeaksClient({ accessToken: '...' })
+const workouts = await tp.getWorkouts({ startDate: '2025-01-01', endDate: '2025-01-07' })
 ```
 
 ### Training Readiness Analysis

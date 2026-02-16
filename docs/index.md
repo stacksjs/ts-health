@@ -4,8 +4,8 @@ layout: home
 
 hero:
   name: "ts-health"
-  text: "Health & fitness data, unified."
-  tagline: "TypeScript library for Oura Ring, WHOOP, Apple Health, Fitbit, and more."
+  text: "Health, fitness & smartwatch data, unified."
+  tagline: "Oura Ring, WHOOP, Fitbit, Garmin, Polar, Suunto, Coros, Wahoo, Apple Health — plus FIT parsing, training metrics, and more."
   image: /images/logo-white.png
   actions:
     - theme: brand
@@ -16,24 +16,24 @@ hero:
       link: https://github.com/stacksjs/ts-health
 
 features:
-  - title: "Oura Ring"
+  - title: "Health Platforms"
     icon: "💍"
-    details: "Full API v2 support: sleep, readiness, activity, HRV, SpO2, stress, body temperature, VO2 max."
-  - title: "WHOOP"
-    icon: "💪"
-    details: "Recovery, strain, sleep, workouts, HRV, SpO2, and skin temperature data."
-  - title: "Apple Health"
-    icon: "🍎"
-    details: "Parse XML exports for sleep stages, heart rate, HRV, steps, workouts, and more."
-  - title: "Fitbit"
+    details: "Oura Ring, WHOOP, Apple Health, Fitbit — unified HealthDriver interface for sleep, readiness, HRV, SpO2, and more."
+  - title: "Smartwatch Devices"
     icon: "⌚"
-    details: "Sleep stages, activity summaries, intraday heart rate, HRV, SpO2, and cardio score."
-  - title: "Training Readiness"
+    details: "Garmin, Polar, Suunto, Coros, Wahoo — USB download, FIT file parsing, GPS tracks, and device monitoring data."
+  - title: "Training Metrics"
     icon: "🏋️"
-    details: "Analyze HRV trends, sleep quality, recovery, and activity balance for training recommendations."
+    details: "TSS, Normalized Power, Intensity Factor, CTL/ATL/TSB, HR & power zones, race predictions."
+  - title: "Sleep & Recovery"
+    icon: "😴"
+    details: "Sleep quality scoring, debt tracking, consistency analysis, recovery scoring, and readiness recommendations."
+  - title: "Data Export"
+    icon: "📊"
+    details: "Export activities to GPX, TCX, CSV, and GeoJSON. Cloud sync with Garmin Connect and Strava."
   - title: "Fully Typed"
     icon: "🔷"
-    details: "Comprehensive TypeScript types with a unified HealthDriver interface across all platforms."
+    details: "Comprehensive TypeScript types with unified interfaces across all platforms and devices."
 ---
 
 <Home />

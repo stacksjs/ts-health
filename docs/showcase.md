@@ -10,7 +10,7 @@ If you authored a project you'd like to showcase, please share it with us in any
 
 ## Related Projects
 
-- [`ts-watches`](https://github.com/stacksjs/ts-watches) _(TypeScript library for smartwatch data: Garmin, Polar, Suunto, Coros, Wahoo, Apple Watch)_
+- [`ts-watches`](https://github.com/stacksjs/ts-watches) _(TypeScript library for smartwatch data: Garmin, Polar, Suunto, Coros, Wahoo, Apple Watch — included as a dependency)_
 - [`ts-garmin`](https://github.com/stacksjs/ts-watches/tree/main/packages/ts-garmin) _(Garmin Connect API client)_
 - [`ts-trainingpeaks`](https://github.com/stacksjs/ts-watches/tree/main/packages/ts-trainingpeaks) _(TrainingPeaks API integration)_
 
@@ -18,7 +18,7 @@ If you authored a project you'd like to showcase, please share it with us in any
 
 The whole Stacks ecosystem is built using various `ts-*` libraries. Here are some related projects:
 
-- [`ts-watches`](https://github.com/stacksjs/ts-watches) _(Smartwatch data parsing, FIT files, training analysis)_
+- [`ts-watches`](https://github.com/stacksjs/ts-watches) _(Smartwatch device drivers, FIT file parsing, training analysis — bundled into ts-health)_
 - [`ts-collect`](https://github.com/stacksjs/ts-collect) _(Lightweight & powerful Laravel-like Collections written for TypeScript)_
 - [`ts-spreadsheets`](https://github.com/stacksjs/ts-spreadsheets) _(Easily generate spreadsheets, like CSVs and Excel files)_
 - [`bunfig`](https://github.com/stacksjs/bunfig) _(Lightweight & smart Bun configuration loader)_

@@ -2,23 +2,47 @@
 
 # Introduction
 
-> A comprehensive TypeScript library for health and fitness data from Oura Ring, WHOOP, Apple Health, Fitbit, and more.
+> A comprehensive TypeScript library for health, fitness, and smartwatch data. Unified access to Oura Ring, WHOOP, Apple Health, Fitbit, Garmin, Polar, Suunto, Coros, and Wahoo — with FIT file parsing, training metrics, data export, and more.
 
 ## Why ts-health?
 
-Building a training app that needs health data from multiple platforms is painful. Each platform has its own API, authentication flow, data shapes, and quirks. `ts-health` provides a unified `HealthDriver` interface that works the same way across all platforms, so you can focus on building your app instead of wrestling with APIs.
+Building a training app that needs health and device data from multiple sources is painful. Each platform has its own API, authentication flow, data shapes, and quirks. Device data comes in binary FIT files with their own protocol. `ts-health` provides a single package that covers everything — cloud health APIs, smartwatch device drivers, FIT file parsing, training analysis, and data export — so you can focus on building your app.
 
 ## What it does
 
-- **Unified health data** - Same interface for Oura Ring, WHOOP, Apple Health, and Fitbit
-- **Sleep analysis** - Quality scoring, consistency tracking, sleep debt analysis
-- **Training readiness** - HRV-based readiness scoring with training recommendations
-- **Recovery tracking** - Multi-factor recovery analysis from sleep, HRV, and activity
-- **Health trends** - Moving averages, anomaly detection, trend direction analysis
+### Health Platform APIs
+- **Oura Ring** - Sleep, readiness, activity, HRV, SpO2, stress, body temperature, VO2 max
+- **WHOOP** - Recovery, strain, sleep, workouts, HRV, SpO2, skin temperature
+- **Apple Health** - XML export parsing for sleep, heart rate, HRV, workouts, and more
+- **Fitbit** - Sleep stages, activity summaries, intraday heart rate, HRV, SpO2
+
+### Smartwatch & Device Data
+- **Garmin** - USB download, FIT file parsing, Garmin Connect cloud sync
+- **Polar** - Device data download and parsing
+- **Suunto** - Device data download and parsing
+- **Coros** - Device data download and parsing
+- **Wahoo** - Device data download and parsing
+- **Apple Watch** - Activity and health data exports
+
+### Training & Analysis
+- **FIT Parsing** - Binary FIT protocol parser for activities, monitoring, GPS tracks
+- **Training Metrics** - TSS, Normalized Power, Intensity Factor, CTL/ATL/TSB
+- **Zone Calculator** - HR and power zones from thresholds
+- **Race Predictor** - Race time predictions from performance data
+- **Sleep Analysis** - Quality scoring, consistency tracking, sleep debt analysis
+- **Training Readiness** - HRV-based readiness scoring with training recommendations
+- **Recovery Tracking** - Multi-factor recovery analysis from sleep, HRV, and activity
+- **Health Trends** - Moving averages, anomaly detection, trend direction analysis
+- **Data Export** - GPX, TCX, CSV, GeoJSON
+
+### Real-time Sensors
+- **ANT+** - Heart rate monitors, power meters, speed/cadence sensors
+- **BLE** - Bluetooth Low Energy sensor connectivity
+- **Live Tracking** - Real-time data streaming
 
 ## How it works
 
-Each platform is implemented as a driver that conforms to the `HealthDriver` interface:
+Each health platform is implemented as a driver that conforms to the `HealthDriver` interface:
 
 ```typescript
 import { createOuraDriver, createWhoopDriver } from 'ts-health'
@@ -32,7 +56,23 @@ const ouraSleep = await oura.getSleep({ startDate: '2025-01-01' })
 const whoopSleep = await whoop.getSleep({ startDate: '2025-01-01' })
 ```
 
-The analysis modules work with data from any driver:
+Device data uses smartwatch drivers and FIT file parsing:
+
+```typescript
+import { createGarminDriver, parseFITFile, calculateTSS, exportToGPX } from 'ts-health'
+
+// Download from connected Garmin watch
+const garmin = createGarminDriver()
+const devices = await garmin.detectDevices()
+const data = await garmin.downloadData(devices[0])
+
+// Or parse any FIT file directly
+const activity = await parseFITFile('/path/to/activity.fit')
+const tss = calculateTSS(activity, { ftp: 250 })
+await exportToGPX(activity, '/path/to/output.gpx')
+```
+
+The analysis modules work with data from any source:
 
 ```typescript
 import { createReadinessAnalyzer } from 'ts-health'
@@ -41,13 +81,6 @@ const analyzer = createReadinessAnalyzer()
 const readiness = analyzer.calculateTrainingReadiness({ sleep, hrv, activity })
 // => { score: 82, recommendation: 'go_hard', factors: { ... } }
 ```
-
-## Companion to ts-watches
-
-`ts-health` complements [`ts-watches`](https://github.com/stacksjs/ts-watches), which handles device-level data (FIT file parsing, USB downloads, Garmin/Polar/Suunto/Coros hardware). Together they cover the full spectrum:
-
-- **ts-watches** - Smartwatch hardware, FIT files, GPS data, training metrics (TSS, NP, IF)
-- **ts-health** - Health platform APIs, sleep, readiness, recovery, HRV analysis
 
 ## Changelog
 

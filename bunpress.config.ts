@@ -1,6 +1,6 @@
 export default {
   title: 'ts-health',
-  description: 'A comprehensive TypeScript library for health & fitness data from Oura Ring, WHOOP, Apple Health, Fitbit, and more',
+  description: 'TypeScript library for health, fitness & smartwatch data. Oura Ring, WHOOP, Fitbit, Garmin, Polar, Suunto, Coros, Wahoo, Apple Health — with FIT parsing, training metrics, and more.',
 
   themeConfig: {
     nav: [
@@ -27,6 +27,10 @@ export default {
           { text: 'WHOOP', link: '/features/whoop' },
           { text: 'Apple Health', link: '/features/apple-health' },
           { text: 'Fitbit', link: '/features/fitbit' },
+          { text: 'Garmin Devices', link: '/features/garmin' },
+          { text: 'FIT File Parsing', link: '/features/fit-parsing' },
+          { text: 'Training Metrics', link: '/features/training-metrics' },
+          { text: 'Data Export', link: '/features/data-export' },
           { text: 'Sleep Tracking', link: '/features/sleep-tracking' },
           { text: 'Training Readiness', link: '/features/training-readiness' },
           { text: 'Recovery Analysis', link: '/features/recovery-analysis' },
@@ -40,7 +44,8 @@ export default {
           { text: 'Sleep Debt Analysis', link: '/advanced/sleep-debt' },
           { text: 'Anomaly Detection', link: '/advanced/anomaly-detection' },
           { text: 'Multi-Platform', link: '/advanced/multi-platform' },
-          { text: 'Using with ts-watches', link: '/advanced/ts-watches-integration' },
+          { text: 'Real-time Sensors', link: '/advanced/realtime-sensors' },
+          { text: 'Cloud Integrations', link: '/advanced/cloud-integrations' },
           { text: 'Custom Drivers', link: '/advanced/custom-drivers' },
         ],
       },
