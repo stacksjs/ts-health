@@ -12,6 +12,8 @@ import type {
   DailyStress,
   BodyTemperature,
   VO2MaxReading,
+  BodyComposition,
+  WeightMeasurement,
   PersonalInfo,
   DeviceInfo,
   OuraListResponse,
@@ -323,6 +325,13 @@ export class OuraDriver implements HealthDriver {
       source: 'oura' as const,
     }))
   }
+
+  // ===========================================================================
+  // Body Composition (not supported by Oura Ring)
+  // ===========================================================================
+
+  async getBodyComposition(): Promise<BodyComposition[]> { return [] }
+  async getWeightMeasurements(): Promise<WeightMeasurement[]> { return [] }
 
   // ===========================================================================
   // Personal Info

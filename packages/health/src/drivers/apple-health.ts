@@ -13,6 +13,8 @@ import type {
   DailyStress,
   BodyTemperature,
   VO2MaxReading,
+  BodyComposition,
+  WeightMeasurement,
   PersonalInfo,
 } from '../types'
 
@@ -399,6 +401,54 @@ export class AppleHealthDriver implements HealthDriver {
       vo2Max: Number.parseFloat(r.value) || 0,
       source: 'apple_health' as const,
     }))
+  }
+
+  // ===========================================================================
+  // Body Composition (Apple Health can store scale data)
+  // ===========================================================================
+
+  async getBodyComposition(options?: DateRangeOptions): Promise<BodyComposition[]> {
+    const weightRecords = this.getRecordsByType('HKQuantityTypeIdentifierBodyMass', options)
+    const fatRecords = this.getRecordsByType('HKQuantityTypeIdentifierBodyFatPercentage', options)
+    const leanRecords = this.getRecordsByType('HKQuantityTypeIdentifierLeanBodyMass', options)
+    const bmiRecords = this.getRecordsByType('HKQuantityTypeIdentifierBodyMassIndex', options)
+
+    const fatByDay = new Map(fatRecords.map(r => [r.startDate.slice(0, 10), Number.parseFloat(r.value)]))
+    const leanByDay = new Map(leanRecords.map(r => [r.startDate.slice(0, 10), Number.parseFloat(r.value)]))
+    const bmiByDay = new Map(bmiRecords.map(r => [r.startDate.slice(0, 10), Number.parseFloat(r.value)]))
+
+    return weightRecords.map((r, i) => {
+      const day = r.startDate.slice(0, 10)
+      return {
+        id: `apple_health_bc_${i}`,
+        day,
+        timestamp: r.startDate,
+        weight: Number.parseFloat(r.value),
+        bmi: bmiByDay.get(day),
+        bodyFatPercentage: fatByDay.get(day),
+        leanMass: leanByDay.get(day),
+        source: 'apple_health' as const,
+      }
+    })
+  }
+
+  async getWeightMeasurements(options?: DateRangeOptions): Promise<WeightMeasurement[]> {
+    const records = this.getRecordsByType('HKQuantityTypeIdentifierBodyMass', options)
+    const bmiRecords = this.getRecordsByType('HKQuantityTypeIdentifierBodyMassIndex', options)
+
+    const bmiByDay = new Map(bmiRecords.map(r => [r.startDate.slice(0, 10), Number.parseFloat(r.value)]))
+
+    return records.map((r, i) => {
+      const day = r.startDate.slice(0, 10)
+      return {
+        id: `apple_health_wt_${i}`,
+        day,
+        timestamp: r.startDate,
+        weight: Number.parseFloat(r.value),
+        bmi: bmiByDay.get(day),
+        source: 'apple_health' as const,
+      }
+    })
   }
 
   // ===========================================================================

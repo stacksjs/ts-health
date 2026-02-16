@@ -12,6 +12,8 @@ import type {
   DailyStress,
   BodyTemperature,
   VO2MaxReading,
+  BodyComposition,
+  WeightMeasurement,
   PersonalInfo,
   WhoopCycle,
   WhoopRecovery,
@@ -284,6 +286,13 @@ export class WhoopDriver implements HealthDriver {
   async getVO2Max(_options?: DateRangeOptions): Promise<VO2MaxReading[]> {
     return []
   }
+
+  // ===========================================================================
+  // Body Composition (not supported by WHOOP)
+  // ===========================================================================
+
+  async getBodyComposition(): Promise<BodyComposition[]> { return [] }
+  async getWeightMeasurements(): Promise<WeightMeasurement[]> { return [] }
 
   // ===========================================================================
   // Personal Info

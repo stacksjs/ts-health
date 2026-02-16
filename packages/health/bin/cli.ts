@@ -22,20 +22,23 @@ interface AnalyzeOptions {
 
 cli
   .command('sync', 'Sync health data from a platform')
-  .option('--driver <driver>', 'Health platform driver (oura, whoop, fitbit, apple-health)')
+  .option('--driver <driver>', 'Health platform driver (oura, whoop, fitbit, apple-health, withings, renpho)')
   .option('--token <token>', 'API access token / personal access token')
+  .option('--email <email>', 'Email (for Renpho)')
+  .option('--password <password>', 'Password (for Renpho)')
   .option('--start <date>', 'Start date (YYYY-MM-DD)')
   .option('--end <date>', 'End date (YYYY-MM-DD)')
   .option('--output <dir>', 'Output directory')
   .option('--verbose', 'Enable verbose logging')
   .example('health sync --driver oura --token YOUR_TOKEN --start 2025-01-01')
-  .action(async (options?: SyncOptions) => {
+  .example('health sync --driver withings --token YOUR_TOKEN --start 2025-01-01')
+  .action(async (options?: SyncOptions & { email?: string; password?: string }) => {
     if (!options?.driver) {
-      console.error('Missing --driver option. Use: oura, whoop, fitbit, apple-health')
+      console.error('Missing --driver option. Use: oura, whoop, fitbit, apple-health, withings, renpho')
       return
     }
 
-    if (!options.token && options.driver !== 'apple-health') {
+    if (!options.token && options.driver !== 'apple-health' && options.driver !== 'renpho') {
       console.error('Missing --token option')
       return
     }
@@ -44,6 +47,8 @@ cli
     const { createWhoopDriver } = await import('../src/drivers/whoop')
     const { createFitbitDriver } = await import('../src/drivers/fitbit')
     const { createAppleHealthDriver } = await import('../src/drivers/apple-health')
+    const { createWithingsDriver } = await import('../src/drivers/withings')
+    const { createRenphoDriver } = await import('../src/drivers/renpho')
 
     const dateRange = {
       startDate: options.start,
@@ -64,6 +69,16 @@ cli
       case 'apple-health':
         driver = createAppleHealthDriver(options.token || './export.xml')
         break
+      case 'withings':
+        driver = createWithingsDriver(options.token)
+        break
+      case 'renpho':
+        if (!options.email || !options.password) {
+          console.error('Renpho requires --email and --password options')
+          return
+        }
+        driver = createRenphoDriver({ email: options.email, password: options.password, accessToken: options.token })
+        break
       default:
         console.error(`Unknown driver: ${options.driver}`)
         return
@@ -74,20 +89,22 @@ cli
     }
 
     try {
-      const [sleep, activity, readiness, hrv] = await Promise.all([
+      const [sleep, activity, readiness, hrv, bodyComposition] = await Promise.all([
         driver.getDailySleep(dateRange),
         driver.getDailyActivity(dateRange),
         driver.getReadiness(dateRange),
         driver.getHRV(dateRange),
+        driver.getBodyComposition(dateRange),
       ])
 
       console.log(`Sleep records: ${sleep.length}`)
       console.log(`Activity records: ${activity.length}`)
       console.log(`Readiness records: ${readiness.length}`)
       console.log(`HRV samples: ${hrv.length}`)
+      console.log(`Body composition records: ${bodyComposition.length}`)
 
       if (options.output) {
-        const data = { sleep, activity, readiness, hrv, syncedAt: new Date().toISOString() }
+        const data = { sleep, activity, readiness, hrv, bodyComposition, syncedAt: new Date().toISOString() }
         const fs = await import('fs')
         fs.mkdirSync(options.output, { recursive: true })
         const outPath = `${options.output}/health-data-${new Date().toISOString().slice(0, 10)}.json`

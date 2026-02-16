@@ -2,7 +2,7 @@
 export * from './config'
 export * from './types'
 
-// Health platform drivers (Oura, WHOOP, Apple Health, Fitbit)
+// Health platform drivers (Oura, WHOOP, Apple Health, Fitbit, Withings, Renpho)
 export * from './drivers'
 
 // Health analysis tools (sleep, readiness, recovery, trends)
@@ -181,6 +181,10 @@ export type {
   DailyStress,
   BodyTemperature,
   VO2MaxReading,
+  BodyComposition,
+  WeightMeasurement,
+  WithingsConfig,
+  RenphoConfig,
   DeviceInfo,
   SleepQualityScore,
   TrainingReadiness,

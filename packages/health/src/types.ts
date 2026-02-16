@@ -35,6 +35,8 @@ export interface HealthConfig {
   whoop?: WhoopConfig
   appleHealth?: AppleHealthConfig
   fitbit?: FitbitConfig
+  withings?: WithingsConfig
+  renpho?: RenphoConfig
 }
 
 export type HealthOptions = Partial<HealthConfig>
@@ -43,7 +45,7 @@ export type HealthOptions = Partial<HealthConfig>
 // Platform & Auth Types
 // ============================================================================
 
-export type HealthPlatformType = 'oura' | 'whoop' | 'apple_health' | 'fitbit' | 'garmin'
+export type HealthPlatformType = 'oura' | 'whoop' | 'apple_health' | 'fitbit' | 'garmin' | 'withings' | 'renpho'
 
 export interface AuthConfig {
   accessToken?: string
@@ -87,6 +89,8 @@ export interface HealthDriver {
   getStress(options?: DateRangeOptions): Promise<DailyStress[]>
   getBodyTemperature(options?: DateRangeOptions): Promise<BodyTemperature[]>
   getVO2Max(options?: DateRangeOptions): Promise<VO2MaxReading[]>
+  getBodyComposition(options?: DateRangeOptions): Promise<BodyComposition[]>
+  getWeightMeasurements(options?: DateRangeOptions): Promise<WeightMeasurement[]>
   getPersonalInfo(): Promise<PersonalInfo | null>
 }
 
@@ -318,6 +322,60 @@ export interface VO2MaxReading {
   day: string
   vo2Max: number
   source: HealthPlatformType
+}
+
+// ============================================================================
+// Body Composition & Weight Types (Smart Scales)
+// ============================================================================
+
+export interface BodyComposition {
+  id: string
+  day: string
+  timestamp: string
+  weight: number // kg
+  bmi?: number
+  bodyFatPercentage?: number
+  fatMassWeight?: number // kg
+  leanMass?: number // kg (fat-free mass)
+  muscleMass?: number // kg
+  boneMass?: number // kg
+  waterPercentage?: number
+  visceralFat?: number // rating/level
+  metabolicAge?: number
+  basalMetabolicRate?: number // kcal
+  proteinPercentage?: number
+  subcutaneousFat?: number // percentage
+  skeletalMuscle?: number // percentage
+  heartRate?: number // some scales measure this
+  source: HealthPlatformType
+}
+
+export interface WeightMeasurement {
+  id: string
+  day: string
+  timestamp: string
+  weight: number // kg
+  bmi?: number
+  source: HealthPlatformType
+}
+
+// ============================================================================
+// Scale Configuration Types
+// ============================================================================
+
+export interface WithingsConfig {
+  clientId: string
+  clientSecret: string
+  accessToken?: string
+  refreshToken?: string
+  baseUrl?: string
+}
+
+export interface RenphoConfig {
+  email: string
+  password: string
+  accessToken?: string
+  baseUrl?: string
 }
 
 // ============================================================================
@@ -625,6 +683,68 @@ export interface WhoopBodyMeasurement {
   height_meter: number
   weight_kilogram: number
   max_heart_rate: number
+}
+
+// ============================================================================
+// Withings API Response Types
+// ============================================================================
+
+export interface WithingsListResponse<T> {
+  status: number
+  body: {
+    measuregrps?: T[]
+    activities?: T[]
+    series?: T[]
+    more: boolean
+    offset: number
+  }
+}
+
+export interface WithingsMeasureGroup {
+  grpid: number
+  attrib: number
+  date: number
+  created: number
+  category: number
+  deviceid: string | null
+  measures: WithingsMeasure[]
+}
+
+export interface WithingsMeasure {
+  value: number
+  type: number // 1=weight, 6=fat%, 5=fatFreeMass, 8=fatMassWeight, 76=muscleMass, 88=boneMass, 77=waterMass, 91=PWV
+  unit: number // 10^unit multiplier
+}
+
+// ============================================================================
+// Renpho API Response Types
+// ============================================================================
+
+export interface RenphoAuthResponse {
+  status_code: string
+  terminal_user_session_key: string
+}
+
+export interface RenphoMeasurement {
+  id: string
+  time_stamp: number
+  weight: number
+  bmi: number
+  bodyfat: number
+  water: number
+  bone: number
+  muscle: number
+  vfal: number // visceral fat level
+  bmr: number
+  protein: number
+  subfat: number // subcutaneous fat
+  skeletal_muscle: number
+}
+
+export interface RenphoListResponse {
+  status_code: string
+  last_at: number
+  measurements: RenphoMeasurement[]
 }
 
 // ============================================================================

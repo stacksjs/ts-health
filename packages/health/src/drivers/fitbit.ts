@@ -12,6 +12,8 @@ import type {
   DailyStress,
   BodyTemperature,
   VO2MaxReading,
+  BodyComposition,
+  WeightMeasurement,
   PersonalInfo,
 } from '../types'
 
@@ -447,6 +449,46 @@ export class FitbitDriver implements HealthDriver {
     catch {
       return []
     }
+  }
+
+  // ===========================================================================
+  // Body Composition (Fitbit Aria scales)
+  // ===========================================================================
+
+  async getBodyComposition(options?: DateRangeOptions): Promise<BodyComposition[]> {
+    const { start, end } = this.getDateRange(options)
+
+    try {
+      const raw = await this.request<{ weight: Array<{ logId: number; date: string; time: string; weight: number; bmi: number; fat?: number }> }>(
+        `/1/user/-/body/log/weight/date/${start}/${end}.json`,
+      )
+
+      return (raw.weight ?? []).map(w => ({
+        id: String(w.logId),
+        day: w.date,
+        timestamp: `${w.date}T${w.time}`,
+        weight: w.weight,
+        bmi: w.bmi,
+        bodyFatPercentage: w.fat,
+        source: 'fitbit' as const,
+      }))
+    }
+    catch {
+      return []
+    }
+  }
+
+  async getWeightMeasurements(options?: DateRangeOptions): Promise<WeightMeasurement[]> {
+    const compositions = await this.getBodyComposition(options)
+
+    return compositions.map(c => ({
+      id: c.id,
+      day: c.day,
+      timestamp: c.timestamp,
+      weight: c.weight,
+      bmi: c.bmi,
+      source: 'fitbit' as const,
+    }))
   }
 
   // ===========================================================================
