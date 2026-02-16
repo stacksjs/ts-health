@@ -1,8 +1,8 @@
-import { CAC } from 'cac'
+import { CLI } from '@stacksjs/clapp'
 import { version } from '../package.json'
 import type { HealthDriver, DateRangeOptions } from '../src/types'
 
-const cli = new CAC('health')
+const cli = new CLI('health')
 
 const ALL_DRIVERS = 'oura, whoop, fitbit, apple-health, withings, renpho'
 
