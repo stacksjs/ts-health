@@ -4,23 +4,26 @@
 
 > A comprehensive TypeScript library for health, fitness, and smartwatch data. Unified access to Oura Ring, WHOOP, Apple Health, Fitbit, Withings, Renpho, Garmin, Polar, Suunto, Coros, and Wahoo — with smart scale body composition, FIT file parsing, training metrics, data export, and more.
 
-## Why ts-health?
+## Why ts-health
 
 Building a training app that needs health and device data from multiple sources is painful. Each platform has its own API, authentication flow, data shapes, and quirks. Device data comes in binary FIT files with their own protocol. `ts-health` provides a single package that covers everything — cloud health APIs, smartwatch device drivers, FIT file parsing, training analysis, and data export — so you can focus on building your app.
 
 ## What it does
 
 ### Health Platform APIs
+
 - **Oura Ring** - Sleep, readiness, activity, HRV, SpO2, stress, body temperature, VO2 max
 - **WHOOP** - Recovery, strain, sleep, workouts, HRV, SpO2, skin temperature
 - **Apple Health** - XML export parsing for sleep, heart rate, HRV, workouts, body composition, and more
 - **Fitbit** - Sleep stages, activity summaries, intraday heart rate, HRV, SpO2, Aria scale data
 
 ### Smart Scales & Body Composition
+
 - **Withings** - Body, Body+, Body Cardio, Body Comp, Body Scan: weight, body fat %, muscle mass, bone mass, water %, visceral fat, BMR, heart rate
 - **Renpho** - Weight, body fat %, muscle mass, bone mass, water %, visceral fat, BMR, protein %, subcutaneous fat, skeletal muscle
 
 ### Smartwatch & Device Data
+
 - **Garmin** - USB download, FIT file parsing, Garmin Connect cloud sync
 - **Polar** - Device data download and parsing
 - **Suunto** - Device data download and parsing
@@ -29,6 +32,7 @@ Building a training app that needs health and device data from multiple sources 
 - **Apple Watch** - Activity and health data exports
 
 ### Training & Analysis
+
 - **FIT Parsing** - Binary FIT protocol parser for activities, monitoring, GPS tracks
 - **Training Metrics** - TSS, Normalized Power, Intensity Factor, CTL/ATL/TSB
 - **Zone Calculator** - HR and power zones from thresholds
@@ -40,6 +44,7 @@ Building a training app that needs health and device data from multiple sources 
 - **Data Export** - GPX, TCX, CSV, GeoJSON
 
 ### Real-time Sensors
+
 - **ANT+** - Heart rate monitors, power meters, speed/cadence sensors
 - **BLE** - Bluetooth Low Energy sensor connectivity
 - **Live Tracking** - Real-time data streaming

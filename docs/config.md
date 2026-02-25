@@ -8,34 +8,44 @@ import type { HealthConfig } from 'ts-health'
 
 const config: HealthConfig = {
   /**
-   * Enable verbose logging.
-   * Default: false
+
+   _ Enable verbose logging.
+   _ Default: false
+
    */
   verbose: true,
 
   /**
-   * Output directory for synced health data.
-   * Default: './health-data'
+
+   _ Output directory for synced health data.
+   _ Default: './health-data'
+
    */
   outputDir: './health-data',
 
   /**
-   * Which health platform drivers to use.
-   * Default: ['oura']
+
+   _ Which health platform drivers to use.
+   _ Default: ['oura']
+
    */
   drivers: ['oura'],
 
   /**
-   * Oura Ring configuration.
-   * Requires a Personal Access Token from https://cloud.ouraring.com/personal-access-tokens
+
+   _ Oura Ring configuration.
+   _ Requires a Personal Access Token from https://cloud.ouraring.com/personal-access-tokens
+
    */
   oura: {
     personalAccessToken: 'your-oura-pat',
   },
 
   /**
-   * WHOOP configuration.
-   * Requires OAuth credentials from https://developer.whoop.com/
+
+   _ WHOOP configuration.
+   _ Requires OAuth credentials from https://developer.whoop.com/
+
    */
   // whoop: {
   //   clientId: 'your-client-id',
@@ -44,16 +54,20 @@ const config: HealthConfig = {
   // },
 
   /**
-   * Apple Health configuration.
-   * Requires an exported XML file from the Health app.
+
+   _ Apple Health configuration.
+   _ Requires an exported XML file from the Health app.
+
    */
   // appleHealth: {
   //   exportPath: '/path/to/export.xml',
   // },
 
   /**
-   * Fitbit configuration.
-   * Requires OAuth credentials from https://dev.fitbit.com/
+
+   _ Fitbit configuration.
+   _ Requires OAuth credentials from https://dev.fitbit.com/
+
    */
   // fitbit: {
   //   clientId: 'your-client-id',
@@ -62,8 +76,10 @@ const config: HealthConfig = {
   // },
 
   /**
-   * Withings smart scale configuration.
-   * Requires OAuth credentials from https://developer.withings.com/
+
+   _ Withings smart scale configuration.
+   _ Requires OAuth credentials from https://developer.withings.com/
+
    */
   // withings: {
   //   clientId: 'your-client-id',
@@ -72,9 +88,11 @@ const config: HealthConfig = {
   // },
 
   /**
-   * Renpho smart scale configuration.
-   * Uses email/password authentication with your Renpho account.
-   */
+
+   _ Renpho smart scale configuration.
+   _ Uses email/password authentication with your Renpho account.
+
+   _/
   // renpho: {
   //   email: 'your-email@example.com',
   //   password: 'your-password',
@@ -88,23 +106,24 @@ export default config
 
 ### `verbose`
 
-- **Type:** `boolean`
-- **Default:** `false`
+_ **Type:** `boolean`
+
+* **Default:** `false`
 
 Enable verbose logging for debugging.
 
 ### `outputDir`
 
-- **Type:** `string`
-- **Default:** `'./health-data'`
+* **Type:** `string`
+* **Default:** `'./health-data'`
 
 Directory where synced health data will be stored.
 
 ### `drivers`
 
-- **Type:** `HealthPlatformType[]`
-- **Default:** `['oura']`
-- **Options:** `'oura'`, `'whoop'`, `'apple_health'`, `'fitbit'`, `'garmin'`, `'withings'`, `'renpho'`
+* **Type:** `HealthPlatformType[]`
+* **Default:** `['oura']`
+* **Options:** `'oura'`, `'whoop'`, `'apple_health'`, `'fitbit'`, `'garmin'`, `'withings'`, `'renpho'`
 
 Which health platform drivers to enable.
 

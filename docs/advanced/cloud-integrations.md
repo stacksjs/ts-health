@@ -110,13 +110,16 @@ for (const activity of activities) {
 ## Platform Setup
 
 ### Garmin Connect
+
 Use your Garmin Connect account credentials. No API key required for personal use.
 
 ### Strava
+
 1. Register at [Strava Developer Portal](https://developers.strava.com/)
 2. Create an OAuth 2.0 application
 3. Complete the OAuth flow to get an access token
 
 ### TrainingPeaks
+
 1. Contact TrainingPeaks for API access
 2. Complete the OAuth flow to get an access token

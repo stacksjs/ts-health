@@ -38,5 +38,3 @@ features:
     icon: "🔷"
     details: "Comprehensive TypeScript types with unified interfaces across all platforms and devices."
 ---
-
-<Home />

@@ -33,6 +33,7 @@ for (const a of anomalies) {
 ```
 
 Output:
+
 ```
 2025-01-05: 22 (2.4 std devs below mean)
 2025-01-08: 75 (2.8 std devs above mean)

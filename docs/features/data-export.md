@@ -14,6 +14,7 @@ await exportToGPX(activity, '/path/to/output.gpx')
 ```
 
 GPX files include:
+
 - GPS coordinates (latitude, longitude, elevation)
 - Timestamps for each trackpoint
 - Heart rate, cadence, and power extensions
@@ -31,6 +32,7 @@ await exportToTCX(activity, '/path/to/output.tcx')
 ```
 
 TCX files include:
+
 - Lap-by-lap breakdown
 - Distance, time, calories per lap
 - Heart rate, cadence, power per trackpoint
@@ -49,6 +51,7 @@ await exportToCSV(activity, '/path/to/output.csv')
 ```
 
 CSV columns include:
+
 - timestamp, latitude, longitude, altitude
 - heart_rate, cadence, power, speed
 - distance, temperature
@@ -66,6 +69,7 @@ await exportToGeoJSON(activity, '/path/to/output.geojson')
 ```
 
 GeoJSON files include:
+
 - LineString geometry with GPS coordinates
 - Properties: sport type, distance, duration, elevation gain
 - Compatible with any GeoJSON-capable mapping library

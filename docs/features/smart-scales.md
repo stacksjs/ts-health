@@ -200,9 +200,9 @@ health compare --driver withings --token YOUR_TOKEN --days 30
 | Protein % | - | Yes | - | - |
 | Subcutaneous Fat | - | Yes | - | - |
 | Skeletal Muscle % | - | Yes | - | - |
-| Heart Rate | Yes* | - | - | - |
+| Heart Rate | Yes_ | - | - | - |
 
-\* Body Cardio, Body Comp, and Body Scan models only.
+\_ Body Cardio, Body Comp, and Body Scan models only.
 
 ## Combining Scale Data with Health Metrics
 
