@@ -46,7 +46,7 @@ health sync --driver renpho --email user@example.com --password pass123
 
 Syncs sleep, activity, readiness, HRV, heart rate, SpO2, stress, body temperature, VO2 max, body composition, weight, and workouts. Outputs a summary and saves a JSON file.
 
-**Output:**
+Output:
 
 ```
 Sync Summary (Oura Ring):
@@ -76,7 +76,7 @@ health sleep 2025-01-15 --driver oura --token YOUR_TOKEN
 health sleep --driver fitbit --token YOUR_TOKEN --start 2025-01-01 --end 2025-01-07
 ```
 
-**Output:**
+Output:
 
 ```
 2025-01-01: 7h 32m sleep | efficiency: 92% | deep: 98m | REM: 112m | light: 230m | awake: 22m | HR: 58 bpm | HRV: 45
@@ -91,7 +91,7 @@ View daily activity data — steps, calories, distance, active time:
 health activity --driver oura --token YOUR_TOKEN --days 7
 ```
 
-**Output:**
+Output:
 
 ```
 2025-01-01: score 82 | 8,432 steps | 312 active cal | 2,150 total cal | 6.2 km | high: 25m | med: 45m | low: 90m
@@ -105,7 +105,7 @@ View workout history:
 health workouts --driver oura --token YOUR_TOKEN --days 30
 ```
 
-**Output:**
+Output:
 
 ```
 2025-01-05: running | 45m | 520 cal | 8.2 km | intensity: moderate | avg HR: 155 bpm
@@ -121,7 +121,7 @@ health hr --driver oura --token YOUR_TOKEN --days 1
 health hr --driver oura --token YOUR_TOKEN --days 7
 ```
 
-**Output:**
+Output:
 
 ```
 Heart Rate Summary (12,480 samples):
@@ -142,7 +142,7 @@ View heart rate variability data:
 health hrv --driver oura --token YOUR_TOKEN --days 14
 ```
 
-**Output:**
+Output:
 
 ```
 HRV Summary (847 samples):
@@ -163,7 +163,7 @@ View blood oxygen saturation data:
 health spo2 --driver oura --token YOUR_TOKEN --days 7
 ```
 
-**Output:**
+Output:
 
 ```
 2025-01-01: avg 97.5% | min: 95% | max: 99%
@@ -178,7 +178,7 @@ View daily stress levels:
 health stress --driver oura --token YOUR_TOKEN --days 7
 ```
 
-**Output:**
+Output:
 
 ```
 2025-01-01: stress: 42 | recovery: 58 | restored
@@ -193,7 +193,7 @@ View body temperature deviations from baseline:
 health body-temp --driver oura --token YOUR_TOKEN --days 14
 ```
 
-**Output:**
+Output:
 
 ```
 2025-01-01: deviation -0.15°C | trend: -0.08°C
@@ -208,7 +208,7 @@ View VO2 max estimates with trend:
 health vo2max --driver oura --token YOUR_TOKEN --days 30
 ```
 
-**Output:**
+Output:
 
 ```
 2025-01-01: 42.5 ml/kg/min
@@ -227,7 +227,7 @@ health weight --driver renpho --email user@example.com --password pass123
 health weight --driver fitbit --token YOUR_TOKEN --days 30
 ```
 
-**Output:**
+Output:
 
 ```
 2025-01-01: 78.5 kg (173.1 lbs) | BMI: 24.2
@@ -246,7 +246,7 @@ health body --driver withings --token YOUR_TOKEN --days 30
 health body --driver renpho --email user@example.com --password pass123 --format json
 ```
 
-**Output:**
+Output:
 
 ```
 2025-01-01: 78.5 kg | fat: 18.2% | muscle: 35.1 kg | bone: 3.2 kg | water: 55.8% | BMI: 24.2 | visceral fat: 8 | BMR: 1,720 kcal
@@ -266,7 +266,7 @@ View daily readiness scores:
 health readiness --driver oura --token YOUR_TOKEN --days 7
 ```
 
-**Output:**
+Output:
 
 ```
 2025-01-01: score 85 | temp: -0.2°C | HRV balance: 82 | sleep balance: 78 | resting HR: 88
@@ -281,7 +281,7 @@ health profile --driver oura --token YOUR_TOKEN
 health profile --driver withings --token YOUR_TOKEN
 ```
 
-**Output:**
+Output:
 
 ```
 Profile (Oura Ring):
@@ -304,7 +304,7 @@ health analyze --driver oura --token YOUR_TOKEN --days 14
 health analyze --driver whoop --token YOUR_TOKEN --days 30
 ```
 
-**Output:**
+Output:
 
 ```
 Training Readiness: 78/100
@@ -329,7 +329,7 @@ Recovery score analysis based on sleep, HRV trends, resting HR, and strain balan
 health recovery --driver oura --token YOUR_TOKEN --days 14
 ```
 
-**Output:**
+Output:
 
 ```
 Recovery Score: 72/100
@@ -351,7 +351,7 @@ health sleep-quality --driver oura --token YOUR_TOKEN --days 7
 health sleep-quality 2025-01-15 --driver oura --token YOUR_TOKEN
 ```
 
-**Output:**
+Output:
 
 ```
 2025-01-01: 82/100 (good) | duration: 80 | efficiency: 100 | deep: 80 | REM: 80 | latency: 100
@@ -374,7 +374,7 @@ health sleep-debt --driver oura --token YOUR_TOKEN --days 14 --target 450
 |--------|-------------|---------|
 | `--target <minutes>` | Target sleep per night in minutes | `480` (8h) |
 
-**Output:**
+Output:
 
 ```
 Sleep Debt Analysis (last 14 days):
@@ -399,7 +399,7 @@ health trends --driver oura --token YOUR_TOKEN --days 30 --metrics sleep,hrv,hr
 |--------|-------------|---------|
 | `--metrics <list>` | Comma-separated: `weight`, `sleep`, `hrv`, `hr`, `steps`, `spo2` | All available |
 
-**Output:**
+Output:
 
 ```
 Health Trends (last 30 days):
@@ -424,7 +424,7 @@ Quick overview of the most recent health metrics across all categories:
 health dashboard --driver oura --token YOUR_TOKEN
 ```
 
-**Output:**
+Output:
 
 ```
 ╔══════════════════════════════════════════════════╗
@@ -472,7 +472,7 @@ health compare --driver oura --token YOUR_TOKEN \
   --period2-start 2025-01-15 --period2-end 2025-01-28
 ```
 
-**Output:**
+Output:
 
 ```
 Comparison: Period 1 (2025-01-01 to 2025-01-07) vs Period 2 (2025-01-08 to 2025-01-14)
@@ -498,7 +498,7 @@ health export --driver withings --token YOUR_TOKEN --days 365 --output ./weight-
 
 Exports all available data types including personal info, sleep, activity, workouts, readiness, heart rate, HRV, SpO2, stress, body temperature, VO2 max, body composition, and weight measurements.
 
-**Output:**
+Output:
 
 ```
 Exporting 90 days of data from Oura Ring...

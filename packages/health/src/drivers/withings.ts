@@ -95,7 +95,11 @@ export class WithingsDriver implements HealthDriver {
       throw new Error(`Withings API error ${response.status}: ${text}`)
     }
 
-    const json = await response.json() as { status: number; body: T; error?: string }
+    const json = await response.json() as {
+      status: number
+      body: T
+      error?: string
+    }
 
     if (json.status !== 0) {
       throw new Error(`Withings API error status ${json.status}: ${json.error ?? 'Unknown error'}`)

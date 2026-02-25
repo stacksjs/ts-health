@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { CLI } from '@stacksjs/clapp'
 import { version } from '../package.json'
 import type { HealthDriver, DateRangeOptions } from '../src/types'
@@ -1042,7 +1043,11 @@ addCommonOptions(cli.command('trends', 'Analyze trends across health metrics'))
     const trackAll = requestedMetrics.length === 0
 
     try {
-      const metricsData: Array<{ name: string; dataPoints: Array<{ day: string; value: number }> }> = []
+      const metricsData: Array<{
+        name: string
+        dataPoints: Array<{ day: string
+        value: number }>
+      }> = []
 
       if (trackAll || requestedMetrics.includes('sleep')) {
         const sleep = await driver.getSleep(dateRange)
@@ -1298,7 +1303,12 @@ cli
   .option('--verbose', 'Enable verbose logging')
   .example('health compare --driver oura --token YOUR_TOKEN --days 14')
   .example('health compare --driver oura --token YOUR_TOKEN --period1-start 2025-01-01 --period1-end 2025-01-14 --period2-start 2025-01-15 --period2-end 2025-01-28')
-  .action(async (options: CommonOptions & { period1Start?: string; period1End?: string; period2Start?: string; period2End?: string }) => {
+  .action(async (options: CommonOptions & {
+    period1Start?: string
+    period1End?: string
+    period2Start?: string
+    period2End?: string
+  }) => {
     const driver = await resolveDriver(options)
     if (!driver) return
 
@@ -1335,7 +1345,12 @@ cli
         driver.getWeightMeasurements(period2),
       ])
 
-      const comparison: Record<string, { period1: number; period2: number; change: number; unit: string }> = {}
+      const comparison: Record<string, {
+        period1: number
+        period2: number
+        change: number
+        unit: string
+      }> = {}
 
       if (sleep1.length > 0 && sleep2.length > 0) {
         const avg1 = sleep1.reduce((s, x) => s + x.totalSleepDuration, 0) / sleep1.length / 3600

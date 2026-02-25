@@ -244,7 +244,11 @@ export class AppleHealthDriver implements HealthDriver {
     const distanceRecords = this.getRecordsByType('HKQuantityTypeIdentifierDistanceWalkingRunning', options)
 
     // Group by day
-    const byDay = new Map<string, { steps: number; calories: number; distance: number }>()
+    const byDay = new Map<string, {
+      steps: number
+      calories: number
+      distance: number
+    }>()
 
     for (const r of stepRecords) {
       const day = r.startDate.slice(0, 10)

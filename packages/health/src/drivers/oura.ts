@@ -524,10 +524,22 @@ export interface OuraSessionResponse {
   start_datetime: string
   end_datetime: string
   type: string
-  heart_rate: { interval: number; items: Array<number | null>; timestamp: string } | null
-  hrv: { interval: number; items: Array<number | null>; timestamp: string } | null
+  heart_rate: {
+    interval: number
+    items: Array<number | null>
+    timestamp: string
+  } | null
+  hrv: {
+    interval: number
+    items: Array<number | null>
+    timestamp: string
+  } | null
   mood: string | null
-  motion_count: { interval: number; items: Array<number | null>; timestamp: string } | null
+  motion_count: {
+    interval: number
+    items: Array<number | null>
+    timestamp: string
+  } | null
 }
 
 export interface OuraTagResponse {

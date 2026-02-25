@@ -29,13 +29,34 @@ interface FitbitSleepResponse {
     isMainSleep: boolean
     levels: {
       summary: {
-        deep?: { count: number; minutes: number }
-        light?: { count: number; minutes: number }
-        rem?: { count: number; minutes: number }
-        wake?: { count: number; minutes: number }
-        asleep?: { count: number; minutes: number }
-        restless?: { count: number; minutes: number }
-        awake?: { count: number; minutes: number }
+        deep?: {
+          count: number
+          minutes: number
+        }
+        light?: {
+          count: number
+          minutes: number
+        }
+        rem?: {
+          count: number
+          minutes: number
+        }
+        wake?: {
+          count: number
+          minutes: number
+        }
+        asleep?: {
+          count: number
+          minutes: number
+        }
+        restless?: {
+          count: number
+          minutes: number
+        }
+        awake?: {
+          count: number
+          minutes: number
+        }
       }
       data: Array<{
         dateTime: string
@@ -63,7 +84,10 @@ interface FitbitActivityResponse {
     activityCalories: number
     caloriesBMR: number
     caloriesOut: number
-    distances: Array<{ activity: string; distance: number }>
+    distances: Array<{
+      activity: string
+      distance: number
+    }>
     fairlyActiveMinutes: number
     lightlyActiveMinutes: number
     sedentaryMinutes: number
@@ -77,12 +101,21 @@ interface FitbitHeartRateResponse {
     dateTime: string
     value: {
       customHeartRateZones: unknown[]
-      heartRateZones: Array<{ caloriesOut: number; max: number; min: number; minutes: number; name: string }>
+      heartRateZones: Array<{
+        caloriesOut: number
+        max: number
+        min: number
+        minutes: number
+        name: string
+      }>
       restingHeartRate?: number
     }
   }>
   'activities-heart-intraday'?: {
-    dataset: Array<{ time: string; value: number }>
+    dataset: Array<{
+      time: string
+      value: number
+    }>
     datasetInterval: number
     datasetType: string
   }
@@ -194,7 +227,10 @@ export class FitbitDriver implements HealthDriver {
     return date // already YYYY-MM-DD
   }
 
-  private getDateRange(options?: DateRangeOptions): { start: string; end: string } {
+  private getDateRange(options?: DateRangeOptions): {
+    start: string
+    end: string
+  } {
     const end = options?.endDate ?? new Date().toISOString().slice(0, 10)
     const start = options?.startDate ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
     return { start: this.formatDate(start), end: this.formatDate(end) }
@@ -459,7 +495,14 @@ export class FitbitDriver implements HealthDriver {
     const { start, end } = this.getDateRange(options)
 
     try {
-      const raw = await this.request<{ weight: Array<{ logId: number; date: string; time: string; weight: number; bmi: number; fat?: number }> }>(
+      const raw = await this.request<{
+        weight: Array<{ logId: number
+        date: string
+        time: string
+        weight: number
+        bmi: number
+        fat?: number }>
+      }>(
         `/1/user/-/body/log/weight/date/${start}/${end}.json`,
       )
 

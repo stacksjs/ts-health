@@ -30,7 +30,12 @@ export class RenphoDriver implements HealthDriver {
   private sessionKey: string | null
   private baseUrl: string
 
-  constructor(config: { email: string; password: string; accessToken?: string; baseUrl?: string }) {
+  constructor(config: {
+    email: string
+    password: string
+    accessToken?: string
+    baseUrl?: string
+  }) {
     this.email = config.email
     this.password = config.password
     this.sessionKey = config.accessToken ?? null
@@ -114,7 +119,10 @@ export class RenphoDriver implements HealthDriver {
       params.date_to = options.endDate
     }
 
-    const data = await this.request<{ last_at: number; measurements: RenphoMeasurement[] }>(
+    const data = await this.request<{
+      last_at: number
+      measurements: RenphoMeasurement[]
+    }>(
       '/v2/measurements/list.json',
       params,
     )
@@ -192,6 +200,11 @@ export class RenphoDriver implements HealthDriver {
   async getVO2Max(): Promise<VO2MaxReading[]> { return [] }
 }
 
-export function createRenphoDriver(config: { email: string; password: string; accessToken?: string; baseUrl?: string }): RenphoDriver {
+export function createRenphoDriver(config: {
+  email: string
+  password: string
+  accessToken?: string
+  baseUrl?: string
+}): RenphoDriver {
   return new RenphoDriver(config)
 }

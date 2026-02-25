@@ -794,7 +794,10 @@ export interface HealthTrend {
   currentAverage: number
   previousAverage: number
   percentChange: number
-  dataPoints: Array<{ day: string; value: number }>
+  dataPoints: Array<{
+    day: string
+    value: number
+  }>
 }
 
 export interface SleepDebtAnalysis {

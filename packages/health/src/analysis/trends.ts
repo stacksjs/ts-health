@@ -3,7 +3,10 @@ import type { HealthTrend } from '../types'
 export class TrendAnalyzer {
   analyzeTrend(
     metric: string,
-    dataPoints: Array<{ day: string; value: number }>,
+    dataPoints: Array<{
+      day: string
+      value: number
+    }>,
     periodDays: number = 14,
   ): HealthTrend {
     if (dataPoints.length === 0) {
@@ -52,7 +55,10 @@ export class TrendAnalyzer {
   analyzeMultipleMetrics(
     metrics: Array<{
       name: string
-      dataPoints: Array<{ day: string; value: number }>
+      dataPoints: Array<{
+        day: string
+        value: number
+      }>
     }>,
     periodDays: number = 14,
   ): HealthTrend[] {
@@ -60,11 +66,20 @@ export class TrendAnalyzer {
   }
 
   calculateMovingAverage(
-    dataPoints: Array<{ day: string; value: number }>,
+    dataPoints: Array<{
+      day: string
+      value: number
+    }>,
     windowSize: number = 7,
-  ): Array<{ day: string; value: number }> {
+  ): Array<{
+    day: string
+    value: number
+  }> {
     const sorted = [...dataPoints].sort((a, b) => a.day.localeCompare(b.day))
-    const result: Array<{ day: string; value: number }> = []
+    const result: Array<{
+      day: string
+      value: number
+    }> = []
 
     for (let i = 0; i < sorted.length; i++) {
       const windowStart = Math.max(0, i - windowSize + 1)
@@ -81,9 +96,16 @@ export class TrendAnalyzer {
   }
 
   detectAnomalies(
-    dataPoints: Array<{ day: string; value: number }>,
+    dataPoints: Array<{
+      day: string
+      value: number
+    }>,
     stdDevThreshold: number = 2,
-  ): Array<{ day: string; value: number; deviation: number }> {
+  ): Array<{
+    day: string
+    value: number
+    deviation: number
+  }> {
     if (dataPoints.length < 5) return []
 
     const values = dataPoints.map(p => p.value)
