@@ -92,6 +92,9 @@
     "release": "bun run changelog && bunx bumpp package.json --all",
     "test": "bun test"
   },
+  "dependencies": {
+    "ts-watches": "https://pkg.pr.new/stacksjs/ts-watches@3fdd0f3"
+  },
   "devDependencies": {
     "@stacksjs/clapp": "^0.2.0",
     "bun-plugin-dtsx": "^0.9.12",

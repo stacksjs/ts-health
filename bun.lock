@@ -17,6 +17,9 @@
       "bin": {
         "health": "./dist/bin/cli.js",
       },
+      "dependencies": {
+        "ts-watches": "https://pkg.pr.new/stacksjs/ts-watches@3fdd0f3",
+      },
       "devDependencies": {
         "@stacksjs/clapp": "^0.2.0",
         "bun-plugin-dtsx": "^0.9.12",
@@ -109,9 +112,15 @@
 
     "ts-error-handling": ["ts-error-handling@0.1.1", "", {}, "sha512-d4VqdX0bJ+jvOYNsY58isJgrEr806Q9cjef5+1UO/kIn1M/+YYSwpR6fqdRhn9XXVASJLSzNmcnBSdl0fRCjDg=="],
 
+    "ts-garmin": ["ts-garmin@https://pkg.pr.new/stacksjs/ts-watches/ts-garmin@3fdd0f3f9ce2eb79ce5c543a44f0dbf6c06f2be7", {}, "sha512-FP/t7i9sSSuFVr/oBQqSAuwjkdKQDsdNxv8oM21z7E22GDFfSN7WYn2i++5/mgSsovRFczLlm2N5g0sZeiqkQA=="],
+
     "ts-health": ["ts-health@workspace:packages/health"],
 
     "ts-pkgx": ["ts-pkgx@0.4.154", "", { "dependencies": { "ts-web-scraper": "^0.1.1" }, "bin": { "ts-pkgx": "dist/bin/cli.js" } }, "sha512-ScxXuLzVvgm1YDbHHz9IRxqnU9vHobZsou61RtTTeCcWov+KLaa3msMwgztr6GrFmGRETkLaTbUU4fOajlHx4w=="],
+
+    "ts-trainingpeaks": ["ts-trainingpeaks@https://pkg.pr.new/stacksjs/ts-watches/ts-trainingpeaks@3fdd0f3f9ce2eb79ce5c543a44f0dbf6c06f2be7", {}, "sha512-QtLIS1B9OwKPeAv9t5RfMiV4Qxf5FM1BOEx2NVE1hJdL5FwYSV3qhZFebKcryVNUAMg0qnlD+IH9tjsIdp8Fpw=="],
+
+    "ts-watches": ["ts-watches@https://pkg.pr.new/stacksjs/ts-watches@3fdd0f3", { "dependencies": { "ts-garmin": "https://pkg.pr.new/stacksjs/ts-watches/ts-garmin@3fdd0f3f9ce2eb79ce5c543a44f0dbf6c06f2be7", "ts-trainingpeaks": "https://pkg.pr.new/stacksjs/ts-watches/ts-trainingpeaks@3fdd0f3f9ce2eb79ce5c543a44f0dbf6c06f2be7" }, "bin": { "watch": "./dist/bin/cli.js" } }, "sha512-b5H2IdVj3OPY726KvEgQRZS5RE9MGzOxtLc27wFu3eO0J4+o1d4X72OPK2OWDjdjyuueTFH3WrinsC5UCDvU+w=="],
 
     "ts-web-scraper": ["ts-web-scraper@0.1.1", "", { "bin": { "scraper": "dist/bin/cli.js" } }, "sha512-js+gSRe95yDD9U3+GmjvIKBYLAN9WoZKV84x7HcSI7dqdWEIoZSeSGR/Jbr8f5hCeV9FD70KdTPIS2LQwviQXQ=="],
 
