@@ -104,7 +104,7 @@ jobs:
         run: bun install
 
       - name: Build
-        run: bun --bun packages/health/build.ts
+        run: bun --bun build.ts
         working-directory: packages/health
 
       - name: Publish Commit
