@@ -13,7 +13,8 @@ export class SleepAnalyzer {
     const deepSleepScore = this.scoreDeepSleep(session.deepSleepDuration, session.totalSleepDuration)
     const remSleepScore = this.scoreRemSleep(session.remSleepDuration, session.totalSleepDuration)
     const latencyScore = this.scoreLatency(session.latency)
-    const consistencyScore = 50 // Requires multi-day data, using default
+    // TODO: replace with multi-day consistency calculation
+    const consistencyScore = 50
 
     const overall = Math.round(
       durationScore * 0.25
