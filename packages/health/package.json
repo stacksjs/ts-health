@@ -48,11 +48,11 @@
       "import": "./dist/src/index.js"
     },
     "./drivers": {
-      "types": "./dist/src/drivers/index.d.ts",
+      "types": "./dist/drivers/index.d.ts",
       "import": "./dist/src/drivers/index.js"
     },
     "./analysis": {
-      "types": "./dist/src/analysis/index.d.ts",
+      "types": "./dist/analysis/index.d.ts",
       "import": "./dist/src/analysis/index.js"
     },
     "./*": {

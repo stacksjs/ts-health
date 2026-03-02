@@ -2,7 +2,7 @@
 
 [![npm version][npm-version-src]][npm-version-href]
 [![GitHub Actions][github-actions-src]][github-actions-href]
-[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+[![Commitizen friendly][commitizen-src]][commitizen-href]
 <!-- [![npm downloads][npm-downloads-src]][npm-downloads-href] -->
 <!-- [![Codecov][codecov-src]][codecov-href] -->
 
@@ -550,13 +550,13 @@ health sleep --driver oura --token YOUR_TOKEN --format json
 
 ### Oura Ring
 
-1. Go to [Oura Developer Portal](https://cloud.ouraring.com/personal-access-tokens)
+1. Go to [Oura Developer Portal][oura-dev-href]
 2. Create a Personal Access Token
 3. Use the token with `createOuraDriver(token)`
 
 ### WHOOP
 
-1. Register at [WHOOP Developer Portal](https://developer.whoop.com/)
+1. Register at [WHOOP Developer Portal][whoop-dev-href]
 2. Create an OAuth application
 3. Complete the OAuth flow to get an access token
 4. Use with `createWhoopDriver(accessToken)`
@@ -570,14 +570,14 @@ health sleep --driver oura --token YOUR_TOKEN --format json
 
 ### Fitbit
 
-1. Register at [Fitbit Developer Portal](https://dev.fitbit.com/)
+1. Register at [Fitbit Developer Portal][fitbit-dev-href]
 2. Create an OAuth 2.0 application
 3. Complete the OAuth flow to get an access token
 4. Use with `createFitbitDriver(accessToken)`
 
 ### Withings Smart Scales
 
-1. Register at [Withings Developer Portal](https://developer.withings.com/)
+1. Register at [Withings Developer Portal][withings-dev-href]
 2. Create an OAuth 2.0 application
 3. Complete the OAuth flow to get an access token
 4. Use with `createWithingsDriver(accessToken)`
@@ -599,7 +599,7 @@ health sleep --driver oura --token YOUR_TOKEN --format json
 
 ### Strava
 
-1. Register at [Strava Developer Portal](https://developers.strava.com/)
+1. Register at [Strava Developer Portal][strava-dev-href]
 2. Create an OAuth application
 3. Use `createStravaClient({ accessToken })`
 
@@ -638,21 +638,21 @@ bun test
 
 ## Changelog
 
-Please see our [releases](https://github.com/stacksjs/ts-health/releases) page for more information on what has changed recently.
+Please see our [releases][releases-href] page for more information on what has changed recently.
 
 ## Contributing
 
-Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
+Please see [CONTRIBUTING][contributing-href] for details.
 
 ## Community
 
 For help, discussion about best practices, or any other conversation that would benefit from being searchable:
 
-[Discussions on GitHub](https://github.com/stacksjs/ts-health/discussions)
+[Discussions on GitHub][discussions-href]
 
 For casual chit-chat with others using this package:
 
-[Join the Stacks Discord Server](https://discord.gg/stacksjs)
+[Join the Stacks Discord Server][discord-href]
 
 ## Postcardware
 
@@ -664,12 +664,12 @@ Our address: Stacks.js, 12665 Village Ln #2306, Playa Vista, CA 90094, United St
 
 We would like to extend our thanks to the following sponsors for funding Stacks development. If you are interested in becoming a sponsor, please reach out to us.
 
-- [JetBrains](https://www.jetbrains.com/)
-- [The Solana Foundation](https://solana.com/)
+- [JetBrains][jetbrains-href]
+- [The Solana Foundation][solana-href]
 
 ## License
 
-The MIT License (MIT). Please see [LICENSE](LICENSE.md) for more information.
+The MIT License (MIT). Please see [LICENSE][license-href] for more information.
 
 Made with 💙
 
@@ -677,6 +677,20 @@ Made with 💙
 [npm-version-src]: https://img.shields.io/npm/v/ts-health?style=flat-square
 [npm-version-href]: https://npmjs.com/package/ts-health
 [github-actions-src]: https://img.shields.io/github/actions/workflow/status/stacksjs/ts-health/ci.yml?style=flat-square&branch=main
+[commitizen-src]: https://img.shields.io/badge/commitizen-friendly-brightgreen.svg
+[commitizen-href]: http://commitizen.github.io/cz-cli/
+[oura-dev-href]: https://cloud.ouraring.com/personal-access-tokens
+[whoop-dev-href]: https://developer.whoop.com/
+[fitbit-dev-href]: https://dev.fitbit.com/
+[withings-dev-href]: https://developer.withings.com/
+[strava-dev-href]: https://developers.strava.com/
+[releases-href]: https://github.com/stacksjs/ts-health/releases
+[contributing-href]: .github/CONTRIBUTING.md
+[discussions-href]: https://github.com/stacksjs/ts-health/discussions
+[discord-href]: https://discord.gg/stacksjs
+[jetbrains-href]: https://www.jetbrains.com/
+[solana-href]: https://solana.com/
+[license-href]: LICENSE.md
 [github-actions-href]: https://github.com/stacksjs/ts-health/actions?query=workflow%3Aci
 
 <!-- [codecov-src]: https://img.shields.io/codecov/c/gh/stacksjs/ts-health/main?style=flat-square

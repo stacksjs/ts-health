@@ -15,3 +15,12 @@ await Bun.build({
   minify: true,
   plugins: [dts()],
 })
+
+// Ensure the CLI bin file has a shebang for executability
+const cliPath = './dist/bin/cli.js'
+const cliFile = Bun.file(cliPath)
+const cliContent = await cliFile.text()
+if (!cliContent.startsWith('#!')) {
+  await Bun.write(cliPath, `#!/usr/bin/env node
+${cliContent}`)
+}
