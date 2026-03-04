@@ -97,7 +97,7 @@
   },
   "devDependencies": {
     "@stacksjs/clapp": "^0.2.0",
-    "bun-plugin-dtsx": "^0.9.12",
+    "bun-plugin-dtsx": "^0.9.13",
     "bunfig": "^0.15.6"
   },
   "lint-staged": {
