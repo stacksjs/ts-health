@@ -2,7 +2,7 @@
 
 ## About
 
-TypeScript library for health, fitness & smartwatch data. Oura Ring, WHOOP, Apple Health, Fitbit, Garmin, and more.
+A comprehensive TypeScript library for health, fitness, and smartwatch data that provides unified access to Oura Ring, WHOOP, Apple Health, Fitbit, Withings, Renpho, Garmin, Polar, Suunto, Coros, and Wahoo. It includes smart scale body composition tracking, FIT file parsing, training load analysis (TSS/NP/IF/CTL/ATL/TSB), sleep quality scoring, recovery analysis, and data export to GPX/TCX/CSV/GeoJSON. All platforms share a common `HealthDriver` interface and there is a 22-command CLI for syncing and analyzing data.
 
 ## Linting
 
