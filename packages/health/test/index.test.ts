@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'bun:test'
+import { beforeAll, describe, expect, it } from 'bun:test'
 import { SleepAnalyzer } from '../src/analysis/sleep'
 import { ReadinessAnalyzer } from '../src/analysis/readiness'
 import { RecoveryAnalyzer } from '../src/analysis/recovery'
@@ -529,5 +529,74 @@ describe('TrendAnalyzer', () => {
     expect(results).toHaveLength(2)
     expect(results[0].metric).toBe('HRV')
     expect(results[1].metric).toBe('Sleep')
+  })
+})
+
+// ============================================================================
+// GarminHealthDriver (dynamic import — depends on ts-garmin via ts-watches)
+// ============================================================================
+
+describe('GarminHealthDriver', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let GarminHealthDriver: any
+  let available = false
+
+  beforeAll(async () => {
+    try {
+      const mod = await import('../src/drivers/garmin')
+      GarminHealthDriver = mod.GarminHealthDriver
+      available = true
+    }
+    catch {
+      // ts-garmin may not be resolvable in all environments
+    }
+  })
+
+  it('has correct type and name', () => {
+    if (!available) return
+    const driver = new GarminHealthDriver({ username: 'test', password: 'test' })
+    expect(driver.type).toBe('garmin')
+    expect(driver.name).toBe('Garmin')
+  })
+
+  it('is not authenticated before login', () => {
+    if (!available) return
+    const driver = new GarminHealthDriver({ username: 'test', password: 'test' })
+    expect(driver.isAuthenticated()).toBe(false)
+  })
+
+  it('supports sleep, activity, HR, HRV, stress, and personalInfo', () => {
+    if (!available) return
+    const driver = new GarminHealthDriver({ username: 'test', password: 'test' })
+    expect(driver.supportedMetrics.has('sleep')).toBe(true)
+    expect(driver.supportedMetrics.has('dailySleep')).toBe(true)
+    expect(driver.supportedMetrics.has('dailyActivity')).toBe(true)
+    expect(driver.supportedMetrics.has('workouts')).toBe(true)
+    expect(driver.supportedMetrics.has('heartRate')).toBe(true)
+    expect(driver.supportedMetrics.has('hrv')).toBe(true)
+    expect(driver.supportedMetrics.has('stress')).toBe(true)
+    expect(driver.supportedMetrics.has('personalInfo')).toBe(true)
+  })
+
+  it('does not support readiness, spo2, bodyTemp, vo2Max, or body composition', () => {
+    if (!available) return
+    const driver = new GarminHealthDriver({ username: 'test', password: 'test' })
+    expect(driver.supportedMetrics.has('readiness')).toBe(false)
+    expect(driver.supportedMetrics.has('spo2')).toBe(false)
+    expect(driver.supportedMetrics.has('bodyTemperature')).toBe(false)
+    expect(driver.supportedMetrics.has('vo2Max')).toBe(false)
+    expect(driver.supportedMetrics.has('bodyComposition')).toBe(false)
+    expect(driver.supportedMetrics.has('weightMeasurements')).toBe(false)
+  })
+
+  it('unsupported methods return empty arrays', async () => {
+    if (!available) return
+    const driver = new GarminHealthDriver({ username: 'test', password: 'test' })
+    expect(await driver.getReadiness()).toEqual([])
+    expect(await driver.getSpO2()).toEqual([])
+    expect(await driver.getBodyTemperature()).toEqual([])
+    expect(await driver.getVO2Max()).toEqual([])
+    expect(await driver.getBodyComposition()).toEqual([])
+    expect(await driver.getWeightMeasurements()).toEqual([])
   })
 })

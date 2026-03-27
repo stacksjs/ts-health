@@ -4,6 +4,7 @@ export type { OuraSessionResponse, OuraTagResponse, OuraRestModeResponse } from 
 export { WhoopDriver, createWhoopDriver } from './whoop'
 export { AppleHealthDriver, createAppleHealthDriver } from './apple-health'
 export { FitbitDriver, createFitbitDriver } from './fitbit'
+export { GarminHealthDriver, createGarminHealthDriver } from './garmin'
 
 // Smart scale drivers
 export { WithingsDriver, createWithingsDriver } from './withings'
