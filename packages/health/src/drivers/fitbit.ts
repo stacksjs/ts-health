@@ -1,4 +1,5 @@
 import type {
+  HealthMetric,
   HealthDriver,
   DateRangeOptions,
   SleepSession,
@@ -195,6 +196,11 @@ interface FitbitCardioScoreResponse {
 export class FitbitDriver implements HealthDriver {
   readonly name = 'Fitbit'
   readonly type = 'fitbit' as const
+  readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
+    'sleep', 'dailySleep', 'dailyActivity', 'workouts', 'heartRate',
+    'hrv', 'spo2', 'bodyTemperature', 'vo2Max', 'bodyComposition',
+    'weightMeasurements', 'personalInfo',
+  ])
 
   private accessToken: string
   private baseUrl: string
@@ -300,42 +306,45 @@ export class FitbitDriver implements HealthDriver {
 
   async getDailyActivity(options?: DateRangeOptions): Promise<DailyActivity[]> {
     const { start, end } = this.getDateRange(options)
-    const activities: DailyActivity[] = []
 
-    // Fitbit requires per-day requests for activity summary
+    // Build list of dates to fetch
+    const dates: string[] = []
     const startDate = new Date(start)
     const endDate = new Date(end)
-
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().slice(0, 10)
+      dates.push(d.toISOString().slice(0, 10))
+    }
 
-      try {
-        const raw = await this.request<FitbitActivityResponse>(`/1/user/-/activities/date/${dateStr}.json`)
+    // Fetch all days concurrently in batches of 10 to avoid rate limits
+    const batchSize = 10
+    const activities: DailyActivity[] = []
 
-        activities.push({
-          day: dateStr,
-          score: 0,
-          activeCalories: raw.summary.activityCalories,
-          totalCalories: raw.summary.caloriesOut,
-          steps: raw.summary.steps,
-          equivalentWalkingDistance: (raw.summary.distances.find(d => d.activity === 'total')?.distance ?? 0) * 1000,
-          highActivityTime: raw.summary.veryActiveMinutes * 60,
-          mediumActivityTime: raw.summary.fairlyActiveMinutes * 60,
-          lowActivityTime: raw.summary.lightlyActiveMinutes * 60,
-          sedentaryTime: raw.summary.sedentaryMinutes * 60,
-          restingTime: 0,
-          nonWearTime: 0,
-          inactivityAlerts: 0,
-          targetCalories: 0,
-          targetMeters: 0,
-          metersToTarget: 0,
-          averageMetLevel: 0,
-          contributors: {},
-          source: 'fitbit' as const,
-        })
-      }
-      catch {
-        // Skip days with errors
+    for (let i = 0; i < dates.length; i += batchSize) {
+      const batch = dates.slice(i, i + batchSize)
+      const results = await Promise.allSettled(
+        batch.map(async (dateStr) => {
+          const raw = await this.request<FitbitActivityResponse>(`/1/user/-/activities/date/${dateStr}.json`)
+          return {
+            day: dateStr,
+            score: 0,
+            activeCalories: raw.summary.activityCalories,
+            totalCalories: raw.summary.caloriesOut,
+            steps: raw.summary.steps,
+            equivalentWalkingDistance: (raw.summary.distances.find(d => d.activity === 'total')?.distance ?? 0) * 1000,
+            highActivityTime: raw.summary.veryActiveMinutes * 60,
+            mediumActivityTime: raw.summary.fairlyActiveMinutes * 60,
+            lowActivityTime: raw.summary.lightlyActiveMinutes * 60,
+            sedentaryTime: raw.summary.sedentaryMinutes * 60,
+            contributors: {},
+            source: 'fitbit' as const,
+          } satisfies DailyActivity
+        }),
+      )
+
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          activities.push(result.value)
+        }
       }
     }
 

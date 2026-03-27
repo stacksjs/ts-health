@@ -1,4 +1,5 @@
 import type {
+  HealthMetric,
   HealthDriver,
   DateRangeOptions,
   SleepSession,
@@ -32,6 +33,10 @@ interface WhoopListResponse<T> {
 export class WhoopDriver implements HealthDriver {
   readonly name = 'WHOOP'
   readonly type = 'whoop' as const
+  readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
+    'sleep', 'dailySleep', 'dailyActivity', 'workouts', 'readiness',
+    'hrv', 'spo2', 'stress', 'bodyTemperature', 'personalInfo',
+  ])
 
   private accessToken: string
   private baseUrl: string
@@ -136,19 +141,6 @@ export class WhoopDriver implements HealthDriver {
         score: Math.round((c.score!.strain / 21) * 100),
         activeCalories: Math.round(c.score!.kilojoule * 0.239),
         totalCalories: Math.round(c.score!.kilojoule * 0.239),
-        steps: 0,
-        equivalentWalkingDistance: 0,
-        highActivityTime: 0,
-        mediumActivityTime: 0,
-        lowActivityTime: 0,
-        sedentaryTime: 0,
-        restingTime: 0,
-        nonWearTime: 0,
-        inactivityAlerts: 0,
-        targetCalories: 0,
-        targetMeters: 0,
-        metersToTarget: 0,
-        averageMetLevel: 0,
         contributors: {},
         timestamp: c.start,
         source: 'whoop' as const,
@@ -204,16 +196,8 @@ export class WhoopDriver implements HealthDriver {
   // ===========================================================================
 
   async getHeartRate(_options?: DateRangeOptions): Promise<HeartRateSample[]> {
-    // WHOOP doesn't expose raw HR samples via API; derive from cycles
-    const cycles = await this.getDailyActivity(_options)
-
-    return cycles
-      .filter(c => c.timestamp)
-      .map(c => ({
-        timestamp: c.timestamp!,
-        bpm: 0,
-        source: 'cycle_average',
-      }))
+    // WHOOP doesn't expose raw HR samples via API
+    return []
   }
 
   // ===========================================================================

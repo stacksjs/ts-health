@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { CLI } from '@stacksjs/clapp'
 import { version } from '../package.json'
-import type { HealthDriver, DateRangeOptions } from '../src/types'
+import type { HealthDriver, HealthMetric, DateRangeOptions } from '../src/types'
 
 const cli = new CLI('health')
 
@@ -111,6 +111,14 @@ function formatDuration(seconds: number): string {
   return `${h}h ${m}m`
 }
 
+function warnIfUnsupported(driver: HealthDriver, metric: HealthMetric): boolean {
+  if (!driver.supportedMetrics.has(metric)) {
+    console.warn(`⚠ ${driver.name} does not support "${metric}" — skipping.`)
+    return true
+  }
+  return false
+}
+
 function addCommonOptions(command: ReturnType<typeof cli.command>) {
   return command
     .option('--driver <driver>', `Health platform driver (${ALL_DRIVERS})`)
@@ -214,6 +222,7 @@ addCommonOptions(cli.command('sleep [date]', 'View sleep sessions with detailed 
   .action(async (date: string | undefined, options: CommonOptions) => {
     const driver = await resolveDriver(options)
     if (!driver) return
+    if (warnIfUnsupported(driver, 'sleep')) return
 
     const dateRange = resolveDateRange(options, date)
 
@@ -256,6 +265,7 @@ addCommonOptions(cli.command('activity [date]', 'View daily activity data (steps
   .action(async (date: string | undefined, options: CommonOptions) => {
     const driver = await resolveDriver(options)
     if (!driver) return
+    if (warnIfUnsupported(driver, 'dailyActivity')) return
 
     const dateRange = resolveDateRange(options, date)
 
@@ -273,8 +283,14 @@ addCommonOptions(cli.command('activity [date]', 'View daily activity data (steps
       }
 
       for (const a of activity) {
-        const distKm = (a.equivalentWalkingDistance / 1000).toFixed(1)
-        console.log(`${a.day}: score ${a.score} | ${a.steps.toLocaleString()} steps | ${a.activeCalories} active cal | ${a.totalCalories} total cal | ${distKm} km | high: ${Math.round(a.highActivityTime / 60)}m | med: ${Math.round(a.mediumActivityTime / 60)}m | low: ${Math.round(a.lowActivityTime / 60)}m`)
+        const parts = [`score ${a.score}`]
+        if (a.steps != null) parts.push(`${a.steps.toLocaleString()} steps`)
+        parts.push(`${a.activeCalories} active cal`, `${a.totalCalories} total cal`)
+        if (a.equivalentWalkingDistance != null) parts.push(`${(a.equivalentWalkingDistance / 1000).toFixed(1)} km`)
+        if (a.highActivityTime != null) parts.push(`high: ${Math.round(a.highActivityTime / 60)}m`)
+        if (a.mediumActivityTime != null) parts.push(`med: ${Math.round(a.mediumActivityTime / 60)}m`)
+        if (a.lowActivityTime != null) parts.push(`low: ${Math.round(a.lowActivityTime / 60)}m`)
+        console.log(`${a.day}: ${parts.join(' | ')}`)
       }
 
       console.log(`\n${activity.length} day(s) found`)
@@ -294,6 +310,7 @@ addCommonOptions(cli.command('workouts [date]', 'View workout history'))
   .action(async (date: string | undefined, options: CommonOptions) => {
     const driver = await resolveDriver(options)
     if (!driver) return
+    if (warnIfUnsupported(driver, 'workouts')) return
 
     const dateRange = resolveDateRange(options, date)
 
@@ -335,6 +352,7 @@ addCommonOptions(cli.command('hr [date]', 'View heart rate data'))
   .action(async (date: string | undefined, options: CommonOptions) => {
     const driver = await resolveDriver(options)
     if (!driver) return
+    if (warnIfUnsupported(driver, 'heartRate')) return
 
     const dateRange = resolveDateRange(options, date)
 
@@ -397,6 +415,7 @@ addCommonOptions(cli.command('hrv [date]', 'View heart rate variability data'))
   .action(async (date: string | undefined, options: CommonOptions) => {
     const driver = await resolveDriver(options)
     if (!driver) return
+    if (warnIfUnsupported(driver, 'hrv')) return
 
     const dateRange = resolveDateRange(options, date)
 
@@ -457,6 +476,7 @@ addCommonOptions(cli.command('spo2 [date]', 'View blood oxygen saturation data')
   .action(async (date: string | undefined, options: CommonOptions) => {
     const driver = await resolveDriver(options)
     if (!driver) return
+    if (warnIfUnsupported(driver, 'spo2')) return
 
     const dateRange = resolveDateRange(options, date)
 
@@ -496,6 +516,7 @@ addCommonOptions(cli.command('stress [date]', 'View daily stress levels'))
   .action(async (date: string | undefined, options: CommonOptions) => {
     const driver = await resolveDriver(options)
     if (!driver) return
+    if (warnIfUnsupported(driver, 'stress')) return
 
     const dateRange = resolveDateRange(options, date)
 
@@ -536,6 +557,7 @@ addCommonOptions(cli.command('body-temp [date]', 'View body temperature deviatio
   .action(async (date: string | undefined, options: CommonOptions) => {
     const driver = await resolveDriver(options)
     if (!driver) return
+    if (warnIfUnsupported(driver, 'bodyTemperature')) return
 
     const dateRange = resolveDateRange(options, date)
 
@@ -575,6 +597,7 @@ addCommonOptions(cli.command('vo2max [date]', 'View VO2 max estimates'))
   .action(async (date: string | undefined, options: CommonOptions) => {
     const driver = await resolveDriver(options)
     if (!driver) return
+    if (warnIfUnsupported(driver, 'vo2Max')) return
 
     const dateRange = resolveDateRange(options, date)
 
@@ -620,6 +643,7 @@ addCommonOptions(cli.command('weight [date]', 'View weight measurements from sma
   .action(async (date: string | undefined, options: CommonOptions) => {
     const driver = await resolveDriver(options)
     if (!driver) return
+    if (warnIfUnsupported(driver, 'weightMeasurements')) return
 
     const dateRange = resolveDateRange(options, date)
 
@@ -666,6 +690,7 @@ addCommonOptions(cli.command('body [date]', 'View body composition data from sma
   .action(async (date: string | undefined, options: CommonOptions) => {
     const driver = await resolveDriver(options)
     if (!driver) return
+    if (warnIfUnsupported(driver, 'bodyComposition')) return
 
     const dateRange = resolveDateRange(options, date)
 
@@ -727,6 +752,7 @@ addCommonOptions(cli.command('readiness [date]', 'View daily readiness scores'))
   .action(async (date: string | undefined, options: CommonOptions) => {
     const driver = await resolveDriver(options)
     if (!driver) return
+    if (warnIfUnsupported(driver, 'readiness')) return
 
     const dateRange = resolveDateRange(options, date)
 
@@ -769,6 +795,7 @@ addCommonOptions(cli.command('profile', 'View personal profile information'))
   .action(async (options: CommonOptions) => {
     const driver = await resolveDriver(options)
     if (!driver) return
+    if (warnIfUnsupported(driver, 'personalInfo')) return
 
     try {
       const info = await driver.getPersonalInfo()
@@ -936,7 +963,7 @@ addCommonOptions(cli.command('sleep-quality [date]', 'Score sleep quality for re
 
       const scores = sessions.map(s => ({
         day: s.day,
-        ...analyzer.scoreSleepQuality(s),
+        ...analyzer.scoreSleepQuality(s, sessions),
       }))
 
       if (options.format === 'json') {
@@ -1109,7 +1136,7 @@ addCommonOptions(cli.command('trends', 'Analyze trends across health metrics'))
         if (activity.length > 0) {
           metricsData.push({
             name: 'Steps',
-            dataPoints: activity.map(a => ({ day: a.day, value: a.steps })),
+            dataPoints: activity.filter(a => a.steps != null).map(a => ({ day: a.day, value: a.steps! })),
           })
           metricsData.push({
             name: 'Active Calories',
@@ -1238,7 +1265,7 @@ addCommonOptions(cli.command('dashboard', 'Quick overview of recent health metri
       if (activity.length > 0) {
         const latest = activity.sort((a, b) => b.day.localeCompare(a.day))[0]
         console.log(`\n  Activity (${latest.day}):`)
-        console.log(`    Steps:       ${latest.steps.toLocaleString()}`)
+        console.log(`    Steps:       ${latest.steps?.toLocaleString() ?? 'N/A'}`)
         console.log(`    Calories:    ${latest.activeCalories} active / ${latest.totalCalories} total`)
       }
 
@@ -1363,8 +1390,8 @@ cli
       }
 
       if (activity1.length > 0 && activity2.length > 0) {
-        const steps1 = activity1.reduce((s, x) => s + x.steps, 0) / activity1.length
-        const steps2 = activity2.reduce((s, x) => s + x.steps, 0) / activity2.length
+        const steps1 = activity1.reduce((s, x) => s + (x.steps ?? 0), 0) / activity1.length
+        const steps2 = activity2.reduce((s, x) => s + (x.steps ?? 0), 0) / activity2.length
         comparison['Daily Steps'] = { period1: Math.round(steps1), period2: Math.round(steps2), change: Math.round(steps2 - steps1), unit: '' }
 
         const cal1 = activity1.reduce((s, x) => s + x.activeCalories, 0) / activity1.length

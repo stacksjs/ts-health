@@ -7,14 +7,15 @@ const IDEAL_EFFICIENCY = 90
 const IDEAL_LATENCY = 15 * 60 // 15 minutes in seconds
 
 export class SleepAnalyzer {
-  scoreSleepQuality(session: SleepSession): SleepQualityScore {
+  scoreSleepQuality(session: SleepSession, recentSessions?: SleepSession[]): SleepQualityScore {
     const durationScore = this.scoreDuration(session.totalSleepDuration)
     const efficiencyScore = this.scoreEfficiency(session.efficiency)
     const deepSleepScore = this.scoreDeepSleep(session.deepSleepDuration, session.totalSleepDuration)
     const remSleepScore = this.scoreRemSleep(session.remSleepDuration, session.totalSleepDuration)
     const latencyScore = this.scoreLatency(session.latency)
-    // TODO: replace with multi-day consistency calculation
-    const consistencyScore = 50
+    const consistencyScore = recentSessions && recentSessions.length >= 3
+      ? this.scoreSleepConsistency(recentSessions)
+      : 50
 
     const overall = Math.round(
       durationScore * 0.25

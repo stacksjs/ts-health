@@ -159,6 +159,7 @@ export type {
   HealthConfig,
   HealthOptions,
   HealthDriver,
+  HealthMetric,
   HealthPlatformType,
   AuthConfig,
   AuthResult,

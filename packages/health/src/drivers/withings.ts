@@ -1,4 +1,5 @@
 import type {
+  HealthMetric,
   HealthDriver,
   DateRangeOptions,
   SleepSession,
@@ -50,6 +51,9 @@ const MEASURE_TYPE = {
 export class WithingsDriver implements HealthDriver {
   readonly name = 'Withings'
   readonly type = 'withings' as const
+  readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
+    'heartRate', 'bodyComposition', 'weightMeasurements', 'personalInfo',
+  ])
 
   private accessToken: string
   private baseUrl: string

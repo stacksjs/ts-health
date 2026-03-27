@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from 'node:fs'
 import type {
+  HealthMetric,
   HealthDriver,
   DateRangeOptions,
   SleepSession,
@@ -45,6 +46,11 @@ interface AppleHealthWorkoutRecord {
 export class AppleHealthDriver implements HealthDriver {
   readonly name = 'Apple Health'
   readonly type = 'apple_health' as const
+  readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
+    'sleep', 'dailySleep', 'dailyActivity', 'workouts', 'heartRate',
+    'hrv', 'spo2', 'bodyTemperature', 'vo2Max', 'bodyComposition',
+    'weightMeasurements', 'personalInfo',
+  ])
 
   private exportPath: string
   private records: AppleHealthRecord[] = []

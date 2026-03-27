@@ -1,4 +1,5 @@
 import type {
+  HealthMetric,
   HealthDriver,
   DateRangeOptions,
   SleepSession,
@@ -24,6 +25,9 @@ const RENPHO_API_BASE = 'https://renpho.qnclouds.com/api'
 export class RenphoDriver implements HealthDriver {
   readonly name = 'Renpho'
   readonly type = 'renpho' as const
+  readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
+    'bodyComposition', 'weightMeasurements', 'personalInfo',
+  ])
 
   private email: string
   private password: string
@@ -75,6 +79,10 @@ export class RenphoDriver implements HealthDriver {
     }
 
     this.sessionKey = data.terminal_user_session_key
+
+    // Clear plaintext credentials once we have a session key
+    this.email = ''
+    this.password = ''
   }
 
   private async request<T>(endpoint: string, params?: Record<string, string | number>): Promise<T> {

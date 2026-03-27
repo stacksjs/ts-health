@@ -72,9 +72,26 @@ export interface DateRangeOptions {
 // Driver Interface
 // ============================================================================
 
+export type HealthMetric =
+  | 'sleep'
+  | 'dailySleep'
+  | 'dailyActivity'
+  | 'workouts'
+  | 'readiness'
+  | 'heartRate'
+  | 'hrv'
+  | 'spo2'
+  | 'stress'
+  | 'bodyTemperature'
+  | 'vo2Max'
+  | 'bodyComposition'
+  | 'weightMeasurements'
+  | 'personalInfo'
+
 export interface HealthDriver {
   readonly name: string
   readonly type: HealthPlatformType
+  readonly supportedMetrics: ReadonlySet<HealthMetric>
 
   isAuthenticated(): boolean
 
@@ -176,19 +193,19 @@ export interface DailyActivity {
   score: number
   activeCalories: number
   totalCalories: number
-  steps: number
-  equivalentWalkingDistance: number
-  highActivityTime: number
-  mediumActivityTime: number
-  lowActivityTime: number
-  sedentaryTime: number
-  restingTime: number
-  nonWearTime: number
-  inactivityAlerts: number
-  targetCalories: number
-  targetMeters: number
-  metersToTarget: number
-  averageMetLevel: number
+  steps?: number
+  equivalentWalkingDistance?: number
+  highActivityTime?: number
+  mediumActivityTime?: number
+  lowActivityTime?: number
+  sedentaryTime?: number
+  restingTime?: number
+  nonWearTime?: number
+  inactivityAlerts?: number
+  targetCalories?: number
+  targetMeters?: number
+  metersToTarget?: number
+  averageMetLevel?: number
   contributors: ActivityContributors
   timestamp?: string
   source: HealthPlatformType
