@@ -600,3 +600,71 @@ describe('GarminHealthDriver', () => {
     expect(await driver.getWeightMeasurements()).toEqual([])
   })
 })
+
+// ============================================================================
+// TrainingPeaksHealthDriver (dynamic import — depends on ts-trainingpeaks)
+// ============================================================================
+
+describe('TrainingPeaksHealthDriver', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let TrainingPeaksHealthDriver: any
+  let available = false
+
+  beforeAll(async () => {
+    try {
+      const mod = await import('../src/drivers/trainingpeaks')
+      TrainingPeaksHealthDriver = mod.TrainingPeaksHealthDriver
+      available = true
+    }
+    catch {
+      // ts-trainingpeaks may not be resolvable in all environments
+    }
+  })
+
+  it('has correct type and name', () => {
+    if (!available) return
+    const driver = new TrainingPeaksHealthDriver({ username: 'test', password: 'test' })
+    expect(driver.type).toBe('trainingpeaks')
+    expect(driver.name).toBe('TrainingPeaks')
+  })
+
+  it('is not authenticated before login', () => {
+    if (!available) return
+    const driver = new TrainingPeaksHealthDriver({ username: 'test', password: 'test' })
+    expect(driver.isAuthenticated()).toBe(false)
+  })
+
+  it('supports metrics, workouts, readiness, HR, HRV, stress, weight, and personalInfo', () => {
+    if (!available) return
+    const driver = new TrainingPeaksHealthDriver({ username: 'test', password: 'test' })
+    expect(driver.supportedMetrics.has('dailySleep')).toBe(true)
+    expect(driver.supportedMetrics.has('dailyActivity')).toBe(true)
+    expect(driver.supportedMetrics.has('workouts')).toBe(true)
+    expect(driver.supportedMetrics.has('readiness')).toBe(true)
+    expect(driver.supportedMetrics.has('heartRate')).toBe(true)
+    expect(driver.supportedMetrics.has('hrv')).toBe(true)
+    expect(driver.supportedMetrics.has('stress')).toBe(true)
+    expect(driver.supportedMetrics.has('weightMeasurements')).toBe(true)
+    expect(driver.supportedMetrics.has('personalInfo')).toBe(true)
+  })
+
+  it('does not support spo2, bodyTemp, vo2Max, bodyComposition, or detailed sleep', () => {
+    if (!available) return
+    const driver = new TrainingPeaksHealthDriver({ username: 'test', password: 'test' })
+    expect(driver.supportedMetrics.has('sleep')).toBe(false)
+    expect(driver.supportedMetrics.has('spo2')).toBe(false)
+    expect(driver.supportedMetrics.has('bodyTemperature')).toBe(false)
+    expect(driver.supportedMetrics.has('vo2Max')).toBe(false)
+    expect(driver.supportedMetrics.has('bodyComposition')).toBe(false)
+  })
+
+  it('unsupported methods return empty arrays', async () => {
+    if (!available) return
+    const driver = new TrainingPeaksHealthDriver({ username: 'test', password: 'test' })
+    expect(await driver.getSleep()).toEqual([])
+    expect(await driver.getSpO2()).toEqual([])
+    expect(await driver.getBodyTemperature()).toEqual([])
+    expect(await driver.getVO2Max()).toEqual([])
+    expect(await driver.getBodyComposition()).toEqual([])
+  })
+})

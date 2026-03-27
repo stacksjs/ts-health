@@ -5,7 +5,7 @@ import type { HealthDriver, HealthMetric, DateRangeOptions } from '../src/types'
 
 const cli = new CLI('health')
 
-const ALL_DRIVERS = 'oura, whoop, fitbit, apple-health, garmin, withings, renpho'
+const ALL_DRIVERS = 'oura, whoop, fitbit, apple-health, garmin, trainingpeaks, withings, renpho'
 
 // ============================================================================
 // Shared types & helpers
@@ -27,7 +27,7 @@ interface CommonOptions {
 async function resolveDriver(options: CommonOptions): Promise<HealthDriver | null> {
   const driverName = options.driver || 'oura'
 
-  if (!options.token && driverName !== 'apple-health' && driverName !== 'renpho' && driverName !== 'garmin') {
+  if (!options.token && driverName !== 'apple-health' && driverName !== 'renpho' && driverName !== 'garmin' && driverName !== 'trainingpeaks') {
     console.error('Missing --token option')
     return null
   }
@@ -39,6 +39,7 @@ async function resolveDriver(options: CommonOptions): Promise<HealthDriver | nul
   const { createWithingsDriver } = await import('../src/drivers/withings')
   const { createRenphoDriver } = await import('../src/drivers/renpho')
   const { createGarminHealthDriver } = await import('../src/drivers/garmin')
+  const { createTrainingPeaksHealthDriver } = await import('../src/drivers/trainingpeaks')
 
   switch (driverName) {
     case 'oura':
@@ -55,6 +56,12 @@ async function resolveDriver(options: CommonOptions): Promise<HealthDriver | nul
         return null
       }
       return createGarminHealthDriver({ username: options.email, password: options.password })
+    case 'trainingpeaks':
+      if (!options.email || !options.password) {
+        console.error('TrainingPeaks requires --email and --password options')
+        return null
+      }
+      return createTrainingPeaksHealthDriver({ username: options.email, password: options.password })
     case 'withings':
       return createWithingsDriver(options.token)
     case 'renpho':
