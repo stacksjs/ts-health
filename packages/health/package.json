@@ -1,10 +1,13 @@
 {
   "name": "ts-health",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "TypeScript library for health, fitness & smartwatch data. Oura Ring, WHOOP, Apple Health, Fitbit, Garmin, Polar, Suunto, Coros, Wahoo — with FIT parsing, training metrics, and more.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "homepage": "https://github.com/stacksjs/ts-health#readme",
   "repository": {
     "type": "git",
@@ -44,32 +47,31 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/src/index.d.ts",
       "import": "./dist/src/index.js"
     },
     "./drivers": {
-      "types": "./dist/drivers/index.d.ts",
+      "types": "./dist/src/drivers/index.d.ts",
       "import": "./dist/src/drivers/index.js"
     },
     "./analysis": {
-      "types": "./dist/analysis/index.d.ts",
+      "types": "./dist/src/analysis/index.d.ts",
       "import": "./dist/src/analysis/index.js"
-    },
-    "./*": {
-      "import": "./dist/*"
     }
   },
   "module": "./dist/src/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/src/index.d.ts",
   "bin": {
     "health": "./dist/bin/cli.js"
   },
   "files": [
     "README.md",
+    "LICENSE.md",
     "dist"
   ],
   "scripts": {
     "build": "bun --bun build.ts && bun run compile",
+    "check:package": "bun scripts/verify-package.ts",
     "compile": "bun build ./bin/cli.ts --compile --minify --outfile bin/health",
     "compile:all": "bun run compile:linux-x64 && bun run compile:linux-arm64 && bun run compile:windows-x64 && bun run compile:darwin-x64 && bun run compile:darwin-arm64",
     "compile:linux-x64": "bun build ./bin/cli.ts --compile --minify --target=bun-linux-x64 --outfile bin/health-linux-x64",
@@ -88,12 +90,13 @@
     "lint:fix": "bunx --bun pickier . --fix",
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
     "changelog": "bunx changelogen --output CHANGELOG.md",
-    "prepublishOnly": "bun --bun run build && bun run compile:all && bun run zip",
+    "prepack": "bun --bun run build",
+    "prepublishOnly": "bun --bun run build",
     "release": "bun run changelog && bunx bumpp package.json --all",
     "test": "bun test"
   },
   "dependencies": {
-    "ts-watches": "https://pkg.pr.new/stacksjs/ts-watches@3fdd0f3"
+    "ts-watches": "^0.1.0"
   },
   "devDependencies": {
     "@stacksjs/clapp": "^0.2.0",
