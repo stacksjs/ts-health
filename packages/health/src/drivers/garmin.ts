@@ -1,5 +1,5 @@
 import { GarminConnectClient } from 'ts-watches'
-import type { GarminConnectConfig, GarminActivitySummary } from 'ts-watches'
+import type { GarminConnectConfig } from 'ts-watches'
 import type {
   HealthMetric,
   HealthDriver,
@@ -19,6 +19,18 @@ import type {
   WeightMeasurement,
   PersonalInfo,
 } from '../types'
+
+interface GarminConnectActivitySummary {
+  activityId: number
+  activityType?: { typeKey?: string }
+  averageHR?: number
+  calories?: number
+  distance?: number
+  duration: number
+  maxHR?: number
+  startTimeGMT: string
+  startTimeLocal: string
+}
 
 export class GarminHealthDriver implements HealthDriver {
   readonly name = 'Garmin'
@@ -182,17 +194,17 @@ export class GarminHealthDriver implements HealthDriver {
     const { start, end } = this.getDateRange(options)
 
     // Fetch a batch of activities and filter by date range
-    const raw = await this.client.getActivities(0, 100)
+    const raw = await this.client.getActivities(0, 100) as GarminConnectActivitySummary[]
 
     return raw
-      .filter((a: GarminActivitySummary) => {
+      .filter((a) => {
         const actDate = a.startTimeLocal?.slice(0, 10)
         if (!actDate) return false
         const startStr = this.toDateString(start)
         const endStr = this.toDateString(end)
         return actDate >= startStr && actDate <= endStr
       })
-      .map((a: GarminActivitySummary) => ({
+      .map(a => ({
         id: a.activityId.toString(),
         activity: a.activityType?.typeKey ?? 'unknown',
         day: a.startTimeLocal.slice(0, 10),
