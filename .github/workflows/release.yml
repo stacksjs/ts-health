@@ -9,18 +9,19 @@ jobs:
   npm:
     name: npm
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
 
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Install Bun
-        uses: oven-sh/setup-bun@v2
-        # env:
-        #   BUN_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+      - name: Setup Pantry
+        uses: pantry-pm/pantry/packages/action@main
         with:
-          bun-version: latest
+          install: 'false'
 
       - name: Use cached node_modules
         uses: actions/cache@v5
@@ -33,24 +34,18 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
+      - name: Build and verify package
+        run: |
+          bun --cwd packages/health run build
+          bun --cwd packages/health run check:package
+
       - name: Publish to npm
-        run: ./scripts/publish.sh
+        working-directory: packages/health
+        run: pantry publish --npm --access public
         env:
-          BUN_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub release
         run: bunx changelogithub
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-
-      - name: Attach Binaries
-        uses: stacksjs/action-releaser@v1.1.0
-        with:
-          files: |
-            packages/ts-health/bin/ts-health-linux-x64.zip
-            packages/ts-health/bin/ts-health-linux-arm64.zip
-            packages/ts-health/bin/ts-health-windows-x64.zip
-            packages/ts-health/bin/ts-health-darwin-x64.zip
-            packages/ts-health/bin/ts-health-darwin-arm64.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
