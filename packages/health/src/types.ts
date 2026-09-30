@@ -373,6 +373,8 @@ export interface WeightMeasurement {
   timestamp: string
   weight: number // kg
   bmi?: number
+  /** Body fat, when the scale measured it in the same weigh-in. */
+  bodyFatPercentage?: number
   source: HealthPlatformType
 }
 

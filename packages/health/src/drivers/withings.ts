@@ -126,6 +126,45 @@ export class WithingsDriver implements HealthDriver {
     return params
   }
 
+  /**
+   * Every measure group in the range. Withings answers a page at a time and
+   * says `more` while there is another, so a year of daily weigh-ins, let
+   * alone a decade, arrives over several requests.
+   */
+  private async measureGroups(params: Record<string, string | number>): Promise<{ groups: WithingsMeasureGroup[], timezone?: string }> {
+    const groups: WithingsMeasureGroup[] = []
+    let timezone: string | undefined
+    let offset: number | undefined
+    for (let page = 0; page < 1000; page++) {
+      const data = await this.request<{ measuregrps?: WithingsMeasureGroup[], timezone?: string, more?: number | boolean, offset?: number }>('/measure', {
+        ...params,
+        action: 'getmeas',
+        ...(offset !== undefined ? { offset } : {}),
+      })
+      groups.push(...(data.measuregrps ?? []))
+      timezone ??= data.timezone
+      if (!data.more || data.offset === undefined || data.offset === offset)
+        break
+      offset = data.offset
+    }
+    return { groups, timezone }
+  }
+
+  /**
+   * The calendar day a weigh-in belongs to, in the account's own time zone:
+   * a 7am weigh-in in Sydney is that morning's, not the previous UTC day's.
+   */
+  private localDay(epochSeconds: number, timezone?: string): string {
+    const date = new Date(epochSeconds * 1000)
+    if (timezone) {
+      try {
+        return new Intl.DateTimeFormat('en-CA', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)
+      }
+      catch {}
+    }
+    return date.toISOString().slice(0, 10)
+  }
+
   // ===========================================================================
   // Body Composition (primary feature for scales)
   // ===========================================================================
@@ -133,29 +172,31 @@ export class WithingsDriver implements HealthDriver {
   async getBodyComposition(options?: DateRangeOptions): Promise<BodyComposition[]> {
     const params = this.buildDateParams(options)
 
-    const data = await this.request<{ measuregrps: WithingsMeasureGroup[] }>('/measure', {
-      action: 'getmeas',
+    const { groups, timezone } = await this.measureGroups({
       ...params,
       category: 1, // real measurements only (not user objectives)
     })
 
-    return (data.measuregrps ?? []).map((grp) => {
+    return groups.map((grp) => {
       const measures = this.extractMeasures(grp)
       const timestamp = new Date(grp.date * 1000).toISOString()
-      const day = timestamp.slice(0, 10)
+      const day = this.localDay(grp.date, timezone)
+      const weight = measures[MEASURE_TYPE.WEIGHT]
+      const waterMass = measures[MEASURE_TYPE.WATER_MASS]
 
       return {
         id: String(grp.grpid),
         day,
         timestamp,
-        weight: measures[MEASURE_TYPE.WEIGHT] ?? 0,
+        weight: weight ?? 0,
         bmi: measures[MEASURE_TYPE.BMI],
         bodyFatPercentage: measures[MEASURE_TYPE.FAT_RATIO],
         fatMassWeight: measures[MEASURE_TYPE.FAT_MASS_WEIGHT],
         leanMass: measures[MEASURE_TYPE.FAT_FREE_MASS],
         muscleMass: measures[MEASURE_TYPE.MUSCLE_MASS],
         boneMass: measures[MEASURE_TYPE.BONE_MASS],
-        waterPercentage: measures[MEASURE_TYPE.WATER_MASS],
+        // Withings reports body water as a mass in kg; this field is a share.
+        waterPercentage: waterMass !== undefined && weight ? +(waterMass / weight * 100).toFixed(1) : undefined,
         visceralFat: measures[MEASURE_TYPE.VISCERAL_FAT],
         basalMetabolicRate: measures[MEASURE_TYPE.BASAL_METABOLIC_RATE],
         heartRate: measures[MEASURE_TYPE.HEART_PULSE],
@@ -167,27 +208,27 @@ export class WithingsDriver implements HealthDriver {
   async getWeightMeasurements(options?: DateRangeOptions): Promise<WeightMeasurement[]> {
     const params = this.buildDateParams(options)
 
-    const data = await this.request<{ measuregrps: WithingsMeasureGroup[] }>('/measure', {
-      action: 'getmeas',
+    // Weight and body fat together: a smart scale takes both in one weigh-in.
+    const { groups, timezone } = await this.measureGroups({
       ...params,
-      meastype: MEASURE_TYPE.WEIGHT,
+      meastypes: `${MEASURE_TYPE.WEIGHT},${MEASURE_TYPE.FAT_RATIO}`,
       category: 1,
     })
 
     const results: WeightMeasurement[] = []
 
-    for (const grp of data.measuregrps ?? []) {
+    for (const grp of groups) {
       const measures = this.extractMeasures(grp)
       const weight = measures[MEASURE_TYPE.WEIGHT]
       if (weight === undefined) continue
 
-      const timestamp = new Date(grp.date * 1000).toISOString()
       results.push({
         id: String(grp.grpid),
-        day: timestamp.slice(0, 10),
-        timestamp,
+        day: this.localDay(grp.date, timezone),
+        timestamp: new Date(grp.date * 1000).toISOString(),
         weight,
         bmi: measures[MEASURE_TYPE.BMI],
+        bodyFatPercentage: measures[MEASURE_TYPE.FAT_RATIO],
         source: 'withings' as const,
       })
     }
@@ -202,8 +243,7 @@ export class WithingsDriver implements HealthDriver {
   async getHeartRate(options?: DateRangeOptions): Promise<HeartRateSample[]> {
     const params = this.buildDateParams(options)
 
-    const data = await this.request<{ measuregrps: WithingsMeasureGroup[] }>('/measure', {
-      action: 'getmeas',
+    const { groups } = await this.measureGroups({
       ...params,
       meastype: MEASURE_TYPE.HEART_PULSE,
       category: 1,
@@ -211,7 +251,7 @@ export class WithingsDriver implements HealthDriver {
 
     const results: HeartRateSample[] = []
 
-    for (const grp of data.measuregrps ?? []) {
+    for (const grp of groups) {
       const measures = this.extractMeasures(grp)
       const bpm = measures[MEASURE_TYPE.HEART_PULSE]
       if (bpm === undefined) continue
