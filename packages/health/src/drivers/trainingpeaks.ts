@@ -22,7 +22,8 @@ import type {
 export interface TrainingPeaksSessionClient {
   getMetrics: (start: Date, end: Date) => Promise<any[]>
   getWorkouts: (start: Date, end: Date) => Promise<any[]>
-  getPerformanceChart: (start: Date, end: Date) => Promise<{ StartDate: string, Tss: number[], Ctl: number[], Atl: number[], Tsb: number[] }>
+  /** Null when the account has no access to the provider's premium chart. */
+  getPerformanceChart: (start: Date, end: Date) => Promise<{ StartDate: string, Tss: number[], Ctl: number[], Atl: number[], Tsb: number[] } | null>
   getAthlete: () => Promise<any>
 }
 

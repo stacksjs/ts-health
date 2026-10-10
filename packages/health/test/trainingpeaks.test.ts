@@ -12,6 +12,16 @@ function session(workouts: any[] = []): TrainingPeaksSessionClient {
 }
 
 describe('TrainingPeaks driver', () => {
+  it('leaves premium readiness absent without losing available daily metrics', async () => {
+    const client = session()
+    client.getPerformanceChart = async () => null
+    const driver = new TrainingPeaksHealthDriver({ username: '', password: '', session: client })
+    expect(await driver.getReadiness()).toEqual([])
+    expect((await driver.getDailySleep())[0]?.contributors.totalSleep).toBe(7.5)
+    client.getPerformanceChart = async () => { throw new Error('provider unavailable') }
+    await expect(driver.getReadiness()).rejects.toThrow('provider unavailable')
+  })
+
   it('reuses an explicit signed-in session for daily metrics', async () => {
     const driver = new TrainingPeaksHealthDriver({ username: '', password: '', session: session() })
     expect(driver.isAuthenticated()).toBe(true)
