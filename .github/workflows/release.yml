@@ -1,6 +1,7 @@
 name: Releaser
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'v*'
@@ -41,9 +42,9 @@ jobs:
 
       - name: Publish to npm
         working-directory: packages/health
-        run: pantry publish --npm --access public
+        run: bun publish --access public
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          BUN_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub release
         run: bunx changelogithub
