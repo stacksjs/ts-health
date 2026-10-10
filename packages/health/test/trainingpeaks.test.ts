@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import type { TrainingPeaksSessionClient } from '../src/drivers/trainingpeaks'
-import { TrainingPeaksHealthDriver } from '../src/drivers/trainingpeaks'
+import { normalizeTrainingPeaksMetrics, TrainingPeaksHealthDriver } from '../src/drivers/trainingpeaks'
 
 function session(workouts: any[] = []): TrainingPeaksSessionClient {
   return {
@@ -31,5 +31,29 @@ describe('TrainingPeaks driver', () => {
     expect(workouts).toHaveLength(1)
     expect(workouts[0]?.distance).toBe(15000)
     expect(Date.parse(workouts[0]!.endDatetime) - Date.parse(workouts[0]!.startDatetime)).toBe(90 * 60_000)
+  })
+})
+
+ describe('web API daily metrics', () => {
+  it('reads nested daily details, preserves zero and excludes charts and absent readings', async () => {
+    const rows = [{ timeStamp: '2024-03-01T00:00:00', details: [
+      { type: 60, value: 67 }, { type: 6, value: 7.5 }, { type: 5, value: 51 },
+      { type: 9, value: 68 }, { type: 2, value: 18 }, { type: 8, value: 0 },
+      { type: 58, value: 8000 }, { type: 10, value: 4 }, { type: 62, value: [1, 2] },
+      { type: 3, value: null },
+    ] }]
+    const client = session()
+    client.getMetrics = async () => rows
+    const driver = new TrainingPeaksHealthDriver({ username: '', password: '', session: client })
+    expect((await driver.getHRV())[0]?.hrv).toBe(67)
+    expect((await driver.getDailySleep())[0]?.contributors.totalSleep).toBe(7.5)
+    expect((await driver.getDailySleep())[0]?.score).toBe(80)
+    expect((await driver.getHeartRate())[0]?.bpm).toBe(51)
+    expect((await driver.getWeightMeasurements())[0]?.weight).toBe(68)
+    expect((await driver.getWeightMeasurements())[0]?.bodyFatPercentage).toBe(18)
+    expect((await driver.getDailyActivity())[0]?.steps).toBe(8000)
+    expect((await driver.getStress())[0]?.stressHigh).toBe(0)
+    expect(normalizeTrainingPeaksMetrics(rows)[0].Fatigue).toBeUndefined()
+    expect(await driver.getDailyMetrics()).toEqual(rows)
   })
 })

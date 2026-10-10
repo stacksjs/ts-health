@@ -34,6 +34,29 @@ export interface TPConfig {
   session?: TrainingPeaksSessionClient
 }
 
+/** Normalize the web API's typed details and the partner API's flat records. */
+export function normalizeTrainingPeaksMetrics(rows: any[]): any[] {
+  const fields: Record<number, string> = {
+    2: 'BodyFatPercentage', 3: 'Fatigue', 4: 'OverallFeeling', 5: 'RestingHeartRate',
+    6: 'SleepHours', 7: 'Soreness', 8: 'Stress', 9: 'Weight', 10: 'SleepQuality',
+    58: 'Steps', 60: 'HrvRmssd',
+  }
+  const days = new Map<string, any>()
+  for (const row of rows) {
+    const date = String(row.Date || row.timeStamp || '').slice(0, 10)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue
+    const metric = { ...days.get(date), ...row, Date: date }
+    for (const detail of row.details || []) {
+      const field = fields[Number(detail.type)]
+      // Charts, notes and absent values cannot be treated as numeric readings.
+      if (field && typeof detail.value === 'number' && Number.isFinite(detail.value))
+        metric[field] = detail.value
+    }
+    days.set(date, metric)
+  }
+  return [...days.values()]
+}
+
 export class TrainingPeaksHealthDriver implements HealthDriver {
   readonly name = 'TrainingPeaks'
   readonly type = 'trainingpeaks' as const
@@ -82,6 +105,13 @@ export class TrainingPeaksHealthDriver implements HealthDriver {
     return { start, end }
   }
 
+  /** Complete provider records, including details HQ has no dedicated chart for. */
+  async getDailyMetrics(options?: DateRangeOptions): Promise<any[]> {
+    await this.ensureAuth()
+    const { start, end } = this.getDateRange(options)
+    return this.client.getMetrics(start, end)
+  }
+
   // ===========================================================================
   // Sleep (from TPMetrics)
   // ===========================================================================
@@ -94,7 +124,7 @@ export class TrainingPeaksHealthDriver implements HealthDriver {
   async getDailySleep(options?: DateRangeOptions): Promise<DailySleepSummary[]> {
     await this.ensureAuth()
     const { start, end } = this.getDateRange(options)
-    const metrics = await this.client.getMetrics(start, end)
+    const metrics = normalizeTrainingPeaksMetrics(await this.client.getMetrics(start, end))
 
     return metrics
       .filter((m: { SleepHours?: number }) => m.SleepHours != null)
@@ -132,9 +162,17 @@ export class TrainingPeaksHealthDriver implements HealthDriver {
       byDay.set(day, existing)
     }
 
+    const metrics = normalizeTrainingPeaksMetrics(await this.client.getMetrics(start, end))
+    const steps = new Map<string, number>()
+    for (const metric of metrics) {
+      if (metric.Steps == null) continue
+      steps.set(metric.Date, metric.Steps)
+      if (!byDay.has(metric.Date)) byDay.set(metric.Date, { calories: 0, distance: 0, duration: 0 })
+    }
     return Array.from(byDay.entries()).map(([day, data]) => ({
       day,
       score: 0,
+      ...(steps.has(day) ? { steps: steps.get(day) } : {}),
       activeCalories: Math.round(data.calories),
       totalCalories: Math.round(data.calories),
       contributors: {},
@@ -229,7 +267,7 @@ export class TrainingPeaksHealthDriver implements HealthDriver {
   async getHeartRate(options?: DateRangeOptions): Promise<HeartRateSample[]> {
     await this.ensureAuth()
     const { start, end } = this.getDateRange(options)
-    const metrics = await this.client.getMetrics(start, end)
+    const metrics = normalizeTrainingPeaksMetrics(await this.client.getMetrics(start, end))
 
     return metrics
       .filter((m: { RestingHeartRate?: number }) => m.RestingHeartRate != null)
@@ -247,7 +285,7 @@ export class TrainingPeaksHealthDriver implements HealthDriver {
   async getHRV(options?: DateRangeOptions): Promise<HRVSample[]> {
     await this.ensureAuth()
     const { start, end } = this.getDateRange(options)
-    const metrics = await this.client.getMetrics(start, end)
+    const metrics = normalizeTrainingPeaksMetrics(await this.client.getMetrics(start, end))
 
     return metrics
       .filter((m: { HrvRmssd?: number }) => m.HrvRmssd != null)
@@ -264,7 +302,7 @@ export class TrainingPeaksHealthDriver implements HealthDriver {
   async getStress(options?: DateRangeOptions): Promise<DailyStress[]> {
     await this.ensureAuth()
     const { start, end } = this.getDateRange(options)
-    const metrics = await this.client.getMetrics(start, end)
+    const metrics = normalizeTrainingPeaksMetrics(await this.client.getMetrics(start, end))
 
     return metrics
       .filter((m: { Stress?: number }) => m.Stress != null)
@@ -283,15 +321,16 @@ export class TrainingPeaksHealthDriver implements HealthDriver {
   async getWeightMeasurements(options?: DateRangeOptions): Promise<WeightMeasurement[]> {
     await this.ensureAuth()
     const { start, end } = this.getDateRange(options)
-    const metrics = await this.client.getMetrics(start, end)
+    const metrics = normalizeTrainingPeaksMetrics(await this.client.getMetrics(start, end))
 
     return metrics
       .filter((m: { Weight?: number }) => m.Weight != null)
-      .map((m: { Date: string, Weight: number }) => ({
+      .map((m: { Date: string, Weight: number, BodyFatPercentage?: number }) => ({
         id: `tp_weight_${m.Date}`,
         day: m.Date,
         timestamp: `${m.Date}T07:00:00`,
         weight: m.Weight,
+        ...(m.BodyFatPercentage != null ? { bodyFatPercentage: m.BodyFatPercentage } : {}),
         source: 'trainingpeaks' as const,
       }))
   }

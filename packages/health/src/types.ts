@@ -168,7 +168,7 @@ export interface SleepSession {
 
 export interface DailySleepSummary {
   day: string
-  score: number
+  score?: number
   contributors: SleepContributors
   timestamp?: string
   source: HealthPlatformType
