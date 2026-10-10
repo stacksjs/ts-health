@@ -18,11 +18,20 @@ import type {
   PersonalInfo,
 } from '../types'
 
-interface TPConfig {
+/** A signed-in provider client, shared by account and coach-roster imports. */
+export interface TrainingPeaksSessionClient {
+  getMetrics: (start: Date, end: Date) => Promise<any[]>
+  getWorkouts: (start: Date, end: Date) => Promise<any[]>
+  getPerformanceChart: (start: Date, end: Date) => Promise<{ StartDate: string, Tss: number[], Ctl: number[], Atl: number[], Tsb: number[] }>
+  getAthlete: () => Promise<any>
+}
+
+export interface TPConfig {
   username: string
   password: string
   cookiePath?: string
   headless?: boolean
+  session?: TrainingPeaksSessionClient
 }
 
 export class TrainingPeaksHealthDriver implements HealthDriver {
@@ -41,6 +50,10 @@ export class TrainingPeaksHealthDriver implements HealthDriver {
 
   constructor(config: TPConfig) {
     this.config = config
+    if (config.session) {
+      this.client = config.session
+      this.authenticated = true
+    }
   }
 
   isAuthenticated(): boolean {
@@ -139,7 +152,9 @@ export class TrainingPeaksHealthDriver implements HealthDriver {
     const { getWorkoutTypeName } = await import('ts-watches')
     const raw = await this.client.getWorkouts(start, end)
 
-    return raw.map((w: {
+    // This API is a log of completed activities. A future plan has no
+    // actual duration and must not turn into a completed workout.
+    return raw.filter((workout: any) => workout.completed === true || (workout.completed == null && Number(workout.totalTime) > 0)).map((w: {
       workoutId: number
       workoutDay: string
       title: string
@@ -157,7 +172,7 @@ export class TrainingPeaksHealthDriver implements HealthDriver {
       startTime?: string | null
       completed?: boolean | null
     }) => {
-      const durationSec = w.totalTime ?? w.totalTimePlanned ?? 0
+      const durationSec = (w.totalTime ?? 0) * 3600
       const day = w.workoutDay?.slice(0, 10)
       const startTime = w.startTime ?? `${day}T00:00:00`
 
@@ -168,7 +183,7 @@ export class TrainingPeaksHealthDriver implements HealthDriver {
         startDatetime: startTime,
         endDatetime: new Date(new Date(startTime).getTime() + durationSec * 1000).toISOString(),
         calories: w.calories || undefined,
-        distance: w.distance ? w.distance * 1000 : undefined,
+        distance: w.distance || undefined,
         averageHeartRate: w.heartRateAverage,
         maxHeartRate: w.heartRateMaximum,
         source: 'trainingpeaks' as const,
