@@ -31,6 +31,24 @@ import type {
   OuraRingConfigurationResponse,
 } from '../types'
 
+/** Daily values retain Oura's calendar day, units and nullable scores. */
+export interface OuraDailyHealth {
+  day: string
+  sleepHours?: number
+  sleepScore?: number
+  averageHRV?: number
+  restingHeartRate?: number
+  readiness?: number
+  steps?: number
+  activeCalories?: number
+  details: Array<{ label: string, value: number | string }>
+}
+
+export interface OuraDailyHealthResult {
+  days: OuraDailyHealth[]
+  errors: Array<{ endpoint: string, message: string }>
+}
+
 const OURA_API_BASE = 'https://api.ouraring.com'
 
 export class OuraDriver implements HealthDriver {
@@ -112,6 +130,75 @@ export class OuraDriver implements HealthDriver {
     }
 
     return params
+  }
+
+  /**
+   * A daily recovery feed. Sleep/HRV use the longest main sleep on Oura's
+   * reported day, so a later nap cannot replace the night's recovery values.
+   * Contributor scores stay in details; they are never treated as bpm/hours.
+   * Independent endpoint failures retain the other readings and remain visible.
+   */
+  async getDailyHealth(options?: DateRangeOptions): Promise<OuraDailyHealthResult> {
+    const params = this.buildDateParams(options)
+    const days = new Map<string, OuraDailyHealth>()
+    const errors: OuraDailyHealthResult['errors'] = []
+    const day = (date: string) => {
+      const value = days.get(date) ?? { day: date, details: [] }
+      days.set(date, value)
+      return value
+    }
+    const detail = (target: OuraDailyHealth, label: string, value: unknown) => {
+      if (typeof value === 'number' && Number.isFinite(value)) target.details.push({ label, value })
+    }
+    const read = async <T>(endpoint: string, map: (rows: T[]) => void) => {
+      try { map(await this.fetchAllPages<T>(`/v2/usercollection/${endpoint}`, params)) }
+      catch (cause) { errors.push({ endpoint, message: cause instanceof Error ? cause.message : String(cause) }) }
+    }
+    await read<OuraSleepResponse>('sleep', rows => {
+      const nights = new Map<string, OuraSleepResponse>()
+      for (const row of rows) {
+        if (row.type !== 'long_sleep' && row.type !== 'sleep') continue
+        const previous = nights.get(row.day)
+        if (!previous || row.total_sleep_duration > previous.total_sleep_duration) nights.set(row.day, row)
+      }
+      for (const row of nights.values()) {
+        const target = day(row.day)
+        if (row.total_sleep_duration != null) target.sleepHours = row.total_sleep_duration / 3600
+        if (row.average_hrv != null) target.averageHRV = row.average_hrv
+        if (row.lowest_heart_rate != null) target.restingHeartRate = row.lowest_heart_rate
+        detail(target, 'Deep sleep (hours)', row.deep_sleep_duration == null ? null : row.deep_sleep_duration / 3600)
+        detail(target, 'REM sleep (hours)', row.rem_sleep_duration == null ? null : row.rem_sleep_duration / 3600)
+        detail(target, 'Light sleep (hours)', row.light_sleep_duration == null ? null : row.light_sleep_duration / 3600)
+        detail(target, 'Awake (minutes)', row.awake_time == null ? null : row.awake_time / 60)
+        detail(target, 'Sleep efficiency (%)', row.efficiency)
+        detail(target, 'Respiratory rate (breaths/min)', row.average_breath)
+      }
+    })
+    await read<OuraDailySleepResponse>('daily_sleep', rows => {
+      for (const row of rows) {
+        const target = day(row.day)
+        if (row.score != null) target.sleepScore = row.score
+      }
+    })
+    await read<OuraDailyReadinessResponse>('daily_readiness', rows => {
+      for (const row of rows) {
+        const target = day(row.day)
+        if (row.score != null) target.readiness = row.score
+        detail(target, 'Temperature deviation (°C)', row.temperature_deviation)
+        for (const [key, value] of Object.entries(row.contributors ?? {}))
+          detail(target, `Readiness: ${key.replaceAll('_', ' ')} (score)`, value)
+      }
+    })
+    await read<OuraDailyActivityResponse>('daily_activity', rows => {
+      for (const row of rows) {
+        const target = day(row.day)
+        if (row.steps != null) target.steps = row.steps
+        if (row.active_calories != null) target.activeCalories = row.active_calories
+        detail(target, 'Activity score', row.score)
+        detail(target, 'Total calories (kcal)', row.total_calories)
+      }
+    })
+    return { days: [...days.values()].sort((a, b) => a.day.localeCompare(b.day)), errors }
   }
 
   // ===========================================================================
