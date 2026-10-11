@@ -4,20 +4,30 @@ ts-health provides full support for the [Oura Ring API v2](https://cloud.ourarin
 
 ## Setup
 
-1. Go to the [Oura Developer Portal](https://cloud.ouraring.com/personal-access-tokens)
-2. Create a Personal Access Token
-3. Use the token to create a driver
+1. Register your application in the [Oura Developer Portal](https://developer.ouraring.com/).
+2. Use Oura’s OAuth authorization-code flow to obtain an access token with the scopes your application needs.
+3. Create the driver with that access token. Store and rotate refresh tokens in your application; personal access tokens are deprecated.
 
 ```typescript
 import { createOuraDriver } from 'ts-health'
 
-const oura = createOuraDriver('your-personal-access-token')
+const oura = createOuraDriver('your-oauth-access-token')
 ```
 
 You can also pass a custom base URL for testing:
 
 ```typescript
 const oura = createOuraDriver('your-token', 'https://your-mock-server.com')
+```
+
+## Daily Recovery Feed
+
+`getDailyHealth` joins sleep, daily sleep scores, readiness and activity under Oura's reported calendar day. Its date bounds are inclusive: the ending day includes its detailed overnight readings even though Oura's sleep endpoint uses an exclusive upper boundary. A later nap does not replace the main sleep. Missing scores remain absent, and independent endpoint errors are returned alongside the available days.
+
+```typescript
+const { days, errors } = await oura.getDailyHealth({ startDate: '2026-10-10', endDate: '2026-10-11' })
+// days contain sleepHours, sleepScore, averageHRV, restingHeartRate,
+// readiness, steps, activeCalories and original measurement details.
 ```
 
 ## Sleep Data

@@ -136,10 +136,20 @@ export class OuraDriver implements HealthDriver {
    * A daily recovery feed. Sleep/HRV use the longest main sleep on Oura's
    * reported day, so a later nap cannot replace the night's recovery values.
    * Contributor scores stay in details; they are never treated as bpm/hours.
+   * Calendar-day bounds are inclusive, including the final night's readings.
    * Independent endpoint failures retain the other readings and remain visible.
    */
   async getDailyHealth(options?: DateRangeOptions): Promise<OuraDailyHealthResult> {
     const params = this.buildDateParams(options)
+    // Oura's detailed sleep window excludes end_date. Daily summaries can
+    // include that day, so query through the following midnight and clip all
+    // joined records to the caller's inclusive calendar-day range.
+    if (options?.endDate) {
+      const end = Date.parse(`${options.endDate}T00:00:00Z`)
+      if (!Number.isFinite(end) || new Date(end).toISOString().slice(0, 10) !== options.endDate)
+        throw new RangeError('endDate must be a valid yyyy-mm-dd calendar day')
+      params.end_date = new Date(end + 86400000).toISOString().slice(0, 10)
+    }
     const days = new Map<string, OuraDailyHealth>()
     const errors: OuraDailyHealthResult['errors'] = []
     const day = (date: string) => {
@@ -198,7 +208,7 @@ export class OuraDriver implements HealthDriver {
         detail(target, 'Total calories (kcal)', row.total_calories)
       }
     })
-    return { days: [...days.values()].sort((a, b) => a.day.localeCompare(b.day)), errors }
+    return { days: [...days.values()].filter(value => (!options?.startDate || value.day >= options.startDate) && (!options?.endDate || value.day <= options.endDate)).sort((a, b) => a.day.localeCompare(b.day)), errors }
   }
 
   // ===========================================================================

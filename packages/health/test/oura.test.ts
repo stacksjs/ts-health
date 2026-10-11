@@ -36,7 +36,25 @@ describe('Oura daily recovery', () => {
     expect(result.days[0]).toMatchObject({ day: night.day, sleepHours: 7.5, sleepScore: 81, averageHRV: 62, restingHeartRate: 47, readiness: 85, steps: 0, activeCalories: 0 })
     expect(result.days[0]!.details).toContainEqual({ label: 'Readiness: resting heart rate (score)', value: 98 })
     expect(result.days[0]!.details).toContainEqual({ label: 'Deep sleep (hours)', value: 1.5 })
-    expect(requests.every(url => url.searchParams.get('start_date') === '2026-10-09' && url.searchParams.get('end_date') === '2026-10-11')).toBe(true)
+    expect(requests.every(url => url.searchParams.get('start_date') === '2026-10-09' && url.searchParams.get('end_date') === '2026-10-12')).toBe(true)
+  })
+  it('includes the ending day through Oura’s exclusive sleep boundary and clips extra summaries', async () => {
+    const finalNight = { ...night, day: '2026-12-31' }
+    globalThis.fetch = (async (input: string) => {
+      const url = new URL(input)
+      expect(url.searchParams.get('end_date')).toBe('2027-01-01')
+      const records = url.pathname.endsWith('/sleep')
+        ? [finalNight]
+        : [{ day: '2026-12-31', score: 81, contributors: {} }, { day: '2027-01-01', score: 90, contributors: {} }]
+      return Response.json({ data: records, next_token: null })
+    }) as typeof fetch
+    const result = await new OuraDriver('test-token').getDailyHealth({ startDate: '2026-12-31', endDate: '2026-12-31' })
+    expect(result.days).toHaveLength(1)
+    expect(result.days[0]).toMatchObject({ day: '2026-12-31', sleepHours: 7.5, averageHRV: 62, restingHeartRate: 47 })
+  })
+  it('rejects malformed ending dates before making requests', async () => {
+    for (const endDate of ['soon', '2026-02-30'])
+      await expect(new OuraDriver('test-token').getDailyHealth({ endDate })).rejects.toThrow(RangeError)
   })
   it('preserves missing scores and keeps readings when one endpoint fails', async () => {
     mockOura([night], { daily_sleep: [{ day: night.day, score: null }], daily_readiness: [{ day: night.day, score: null, contributors: {} }] }, 'daily_activity')
