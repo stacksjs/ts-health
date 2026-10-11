@@ -1,5 +1,20 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.4...v0.1.5)
+
+## 🐛 Bug Fixes
+
+- expose accurate Oura daily recovery readings ([cf292c7](https://github.com/stacksjs/ts-health/commit/cf292c7)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.5 ([e208f5d](https://github.com/stacksjs/ts-health/commit/e208f5d)) _(by Chris <chrisbreuer93@gmail.com>)_
+- rebuild health CLI with Oura recovery support ([2534124](https://github.com/stacksjs/ts-health/commit/2534124)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.0...v0.1.1)
 
 ## 🐛 Bug Fixes
