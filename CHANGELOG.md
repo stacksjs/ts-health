@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.5...v0.1.6)
+
+## 🐛 Bug Fixes
+
+- include the ending day in Oura recovery feeds ([d8f69a5](https://github.com/stacksjs/ts-health/commit/d8f69a5)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.6 ([e4cdb75](https://github.com/stacksjs/ts-health/commit/e4cdb75)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.4...v0.1.5)
 
 ## 🐛 Bug Fixes
