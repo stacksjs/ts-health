@@ -118,6 +118,16 @@ export class OuraDriver implements HealthDriver {
     return allData
   }
 
+  /** `start_datetime`/`end_datetime` for the collections filtered by instant rather than by day. */
+  private buildDatetimeParams(options?: DateRangeOptions): Record<string, string> {
+    const params: Record<string, string> = {}
+    if (options?.startDate)
+      params.start_datetime = toOuraDatetime(options.startDate, 'startDate', false)
+    if (options?.endDate)
+      params.end_datetime = toOuraDatetime(options.endDate, 'endDate', true)
+    return params
+  }
+
   private buildDateParams(options?: DateRangeOptions): Record<string, string> {
     const params: Record<string, string> = {}
 
@@ -336,8 +346,15 @@ export class OuraDriver implements HealthDriver {
   // Heart Rate
   // ===========================================================================
 
+  /**
+   * Oura's heart-rate readings (about every five minutes, plus workouts).
+   * Unlike the daily collections, this one is filtered by `start_datetime`
+   * and `end_datetime`; it ignores `start_date`/`end_date` and answers its
+   * default window instead. A full ISO datetime is passed through; a calendar
+   * day runs from its UTC midnight, and an ending day is included whole.
+   */
   async getHeartRate(options?: DateRangeOptions): Promise<HeartRateSample[]> {
-    const params = this.buildDateParams(options)
+    const params = this.buildDatetimeParams(options)
     const raw = await this.fetchAllPages<OuraHeartRateResponse>('/v2/usercollection/heartrate', params)
 
     return raw.map(hr => ({
@@ -662,6 +679,25 @@ export interface OuraRestModeResponse {
     tags: string[]
     timestamp: string
   }>
+}
+
+const CALENDAR_DAY = /^\d{4}-\d{2}-\d{2}$/
+
+/**
+ * A caller's date as the datetime Oura's heartrate collection takes. A
+ * calendar day becomes its UTC midnight, or the next one for an inclusive
+ * ending day; anything else must parse as an instant and is sent as given.
+ */
+function toOuraDatetime(value: string, name: string, inclusiveEnd: boolean): string {
+  if (CALENDAR_DAY.test(value)) {
+    const midnight = Date.parse(`${value}T00:00:00Z`)
+    if (!Number.isFinite(midnight) || new Date(midnight).toISOString().slice(0, 10) !== value)
+      throw new RangeError(`${name} must be a valid yyyy-mm-dd calendar day or an ISO datetime`)
+    return new Date(inclusiveEnd ? midnight + 86400000 : midnight).toISOString()
+  }
+  if (!Number.isFinite(Date.parse(value)))
+    throw new RangeError(`${name} must be a valid yyyy-mm-dd calendar day or an ISO datetime`)
+  return value
 }
 
 export function createOuraDriver(accessToken: string, baseUrl?: string): OuraDriver {

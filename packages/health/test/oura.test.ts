@@ -81,3 +81,44 @@ describe('Oura daily recovery', () => {
     expect(result.days[0]!.day).toBe(night.day)
   })
 })
+
+describe('Oura heart rate', () => {
+  it('filters the heartrate collection by start_datetime and end_datetime', async () => {
+    const requests = mockOura([], { heartrate: [{ timestamp: '2026-10-10T03:05:00+00:00', bpm: 48, source: 'sleep' }] })
+    const samples = await new OuraDriver('test-token', 'https://test.oura.local').getHeartRate({ startDate: '2026-10-10T00:00:00.000Z', endDate: '2026-10-11T12:30:00.000Z' })
+    expect(samples).toEqual([{ timestamp: '2026-10-10T03:05:00+00:00', bpm: 48, source: 'sleep' }])
+    expect(requests).toHaveLength(1)
+    expect(requests[0]!.pathname).toBe('/v2/usercollection/heartrate')
+    expect(requests[0]!.searchParams.get('start_datetime')).toBe('2026-10-10T00:00:00.000Z')
+    expect(requests[0]!.searchParams.get('end_datetime')).toBe('2026-10-11T12:30:00.000Z')
+    // The day parameters this endpoint ignores are not sent at all.
+    expect(requests[0]!.searchParams.has('start_date')).toBe(false)
+    expect(requests[0]!.searchParams.has('end_date')).toBe(false)
+  })
+  it('reads calendar days whole, through the end of the ending day', async () => {
+    const requests = mockOura([])
+    await new OuraDriver('test-token').getHeartRate({ startDate: '2026-12-30', endDate: '2026-12-31' })
+    expect(requests[0]!.searchParams.get('start_datetime')).toBe('2026-12-30T00:00:00.000Z')
+    expect(requests[0]!.searchParams.get('end_datetime')).toBe('2027-01-01T00:00:00.000Z')
+  })
+  it('rejects dates it cannot read before making requests', async () => {
+    const requests = mockOura([])
+    for (const range of [{ startDate: 'yesterday' }, { endDate: '2026-02-30' }])
+      await expect(new OuraDriver('test-token').getHeartRate(range)).rejects.toThrow(RangeError)
+    expect(requests).toHaveLength(0)
+  })
+  it('follows next_token pages', async () => {
+    let calls = 0
+    globalThis.fetch = (async (input: string) => {
+      const url = new URL(input)
+      calls++
+      expect(url.searchParams.get('start_datetime')).toBe('2026-10-10T00:00:00.000Z')
+      return Response.json(url.searchParams.has('next_token')
+        ? { data: [{ timestamp: '2026-10-10T00:10:00+00:00', bpm: 51, source: 'rest' }], next_token: null }
+        : { data: [{ timestamp: '2026-10-10T00:05:00+00:00', bpm: 50, source: 'rest' }], next_token: 'page-2' })
+    }) as typeof fetch
+    const samples = await new OuraDriver('test-token').getHeartRate({ startDate: '2026-10-10' })
+    expect(calls).toBe(2)
+    expect(samples.map(sample => sample.bpm)).toEqual([50, 51])
+  })
+})
