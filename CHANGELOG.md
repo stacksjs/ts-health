@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.6...v0.1.7)
+
+## 🐛 Bug Fixes
+
+- filter Oura heart rate by start_datetime and end_datetime ([df3c068](https://github.com/stacksjs/ts-health/commit/df3c068)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.7 ([1df55a7](https://github.com/stacksjs/ts-health/commit/1df55a7)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.5...v0.1.6)
 
 ## 🐛 Bug Fixes
