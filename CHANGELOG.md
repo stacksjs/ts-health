@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.8...v0.1.9)
+
+## 🐛 Bug Fixes
+
+- declare each driver's type and provider as a literal ([8648886](https://github.com/stacksjs/ts-health/commit/8648886)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.9 ([162c04f](https://github.com/stacksjs/ts-health/commit/162c04f)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.7...v0.1.8)
 
 ## ✨ Features
