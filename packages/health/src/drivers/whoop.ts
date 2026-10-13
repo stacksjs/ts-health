@@ -32,7 +32,7 @@ interface WhoopListResponse<T> {
 
 export class WhoopDriver implements HealthDriver {
   readonly name = 'WHOOP'
-  readonly type = 'whoop' as const
+  readonly type: 'whoop' = 'whoop'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
     'sleep', 'dailySleep', 'dailyActivity', 'workouts', 'readiness',
     'hrv', 'spo2', 'stress', 'bodyTemperature', 'personalInfo',

@@ -114,7 +114,7 @@ function instant(value: unknown, offsetMinutes: number | null): number | null {
 
 export class CorosCloudDriver extends BaseDeviceCloudDriver {
   readonly name = 'COROS'
-  readonly provider = 'coros' as const
+  readonly provider: 'coros' = 'coros'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>(['workouts', 'sleep', 'hrv', 'heartRate', 'dailyActivity'])
   private readonly baseUrl: string
   private readonly openId: string

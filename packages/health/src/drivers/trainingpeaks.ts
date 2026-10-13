@@ -60,7 +60,7 @@ export function normalizeTrainingPeaksMetrics(rows: any[]): any[] {
 
 export class TrainingPeaksHealthDriver implements HealthDriver {
   readonly name = 'TrainingPeaks'
-  readonly type = 'trainingpeaks' as const
+  readonly type: 'trainingpeaks' = 'trainingpeaks'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
     'dailySleep', 'dailyActivity', 'workouts', 'readiness',
     'heartRate', 'hrv', 'stress',

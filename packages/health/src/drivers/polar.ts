@@ -89,7 +89,7 @@ export interface PolarDriverOptions {
 
 export class PolarAccessLinkDriver extends BaseDeviceCloudDriver {
   readonly name = 'Polar'
-  readonly provider = 'polar' as const
+  readonly provider: 'polar' = 'polar'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>(['workouts', 'sleep', 'hrv', 'heartRate', 'dailyActivity'])
   private readonly baseUrl: string
   private readonly userId: string | undefined

@@ -50,7 +50,7 @@ const MEASURE_TYPE = {
 
 export class WithingsDriver implements HealthDriver {
   readonly name = 'Withings'
-  readonly type = 'withings' as const
+  readonly type: 'withings' = 'withings'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
     'heartRate', 'bodyComposition', 'weightMeasurements', 'personalInfo',
   ])

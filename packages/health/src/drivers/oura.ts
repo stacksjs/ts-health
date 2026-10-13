@@ -53,7 +53,7 @@ const OURA_API_BASE = 'https://api.ouraring.com'
 
 export class OuraDriver implements HealthDriver {
   readonly name = 'Oura Ring'
-  readonly type = 'oura' as const
+  readonly type: 'oura' = 'oura'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
     'sleep', 'dailySleep', 'dailyActivity', 'workouts', 'readiness',
     'heartRate', 'hrv', 'spo2', 'stress', 'bodyTemperature', 'vo2Max', 'personalInfo',

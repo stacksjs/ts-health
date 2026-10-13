@@ -132,7 +132,7 @@ export interface WahooDriverOptions {
 
 export class WahooCloudDriver extends BaseDeviceCloudDriver {
   readonly name = 'Wahoo'
-  readonly provider = 'wahoo' as const
+  readonly provider: 'wahoo' = 'wahoo'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>(['workouts'])
   private readonly baseUrl: string
   private readonly pageSize: number

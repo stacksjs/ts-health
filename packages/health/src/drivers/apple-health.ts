@@ -45,7 +45,7 @@ interface AppleHealthWorkoutRecord {
 
 export class AppleHealthDriver implements HealthDriver {
   readonly name = 'Apple Health'
-  readonly type = 'apple_health' as const
+  readonly type: 'apple_health' = 'apple_health'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
     'sleep', 'dailySleep', 'dailyActivity', 'workouts', 'heartRate',
     'hrv', 'spo2', 'bodyTemperature', 'vo2Max', 'bodyComposition',

@@ -34,7 +34,7 @@ interface GarminConnectActivitySummary {
 
 export class GarminHealthDriver implements HealthDriver {
   readonly name = 'Garmin'
-  readonly type = 'garmin' as const
+  readonly type: 'garmin' = 'garmin'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
     'sleep', 'dailySleep', 'dailyActivity', 'workouts',
     'heartRate', 'hrv', 'stress', 'personalInfo',

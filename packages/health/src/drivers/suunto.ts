@@ -108,7 +108,7 @@ function list<T>(data: any): T[] {
 
 export class SuuntoCloudDriver extends BaseDeviceCloudDriver {
   readonly name = 'Suunto'
-  readonly provider = 'suunto' as const
+  readonly provider: 'suunto' = 'suunto'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>(['workouts', 'sleep', 'hrv', 'dailyActivity'])
   private readonly baseUrl: string
   private readonly subscriptionKey: string

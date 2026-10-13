@@ -24,7 +24,7 @@ const RENPHO_API_BASE = 'https://renpho.qnclouds.com/api'
 
 export class RenphoDriver implements HealthDriver {
   readonly name = 'Renpho'
-  readonly type = 'renpho' as const
+  readonly type: 'renpho' = 'renpho'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
     'bodyComposition', 'weightMeasurements', 'personalInfo',
   ])

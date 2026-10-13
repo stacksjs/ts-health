@@ -195,7 +195,7 @@ interface FitbitCardioScoreResponse {
 
 export class FitbitDriver implements HealthDriver {
   readonly name = 'Fitbit'
-  readonly type = 'fitbit' as const
+  readonly type: 'fitbit' = 'fitbit'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
     'sleep', 'dailySleep', 'dailyActivity', 'workouts', 'heartRate',
     'hrv', 'spo2', 'bodyTemperature', 'vo2Max', 'bodyComposition',
