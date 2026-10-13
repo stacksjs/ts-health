@@ -11,3 +11,6 @@ export type { TPConfig, TrainingPeaksSessionClient } from './trainingpeaks'
 // Smart scale drivers
 export { WithingsDriver, createWithingsDriver } from './withings'
 export { RenphoDriver, createRenphoDriver } from './renpho'
+
+// Watch makers' clouds: activities as their original .fit, plus daily readings
+export * from '../device-clouds'

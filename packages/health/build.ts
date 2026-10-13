@@ -4,6 +4,7 @@ import { dts } from 'bun-plugin-dtsx'
 const entrypoints = [
   'src/index.ts',
   'src/drivers/index.ts',
+  'src/device-clouds.ts',
   'src/analysis/index.ts',
   'bin/cli.ts',
 ]

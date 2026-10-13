@@ -54,6 +54,10 @@
       "types": "./dist/src/drivers/index.d.ts",
       "import": "./dist/src/drivers/index.js"
     },
+    "./device-clouds": {
+      "types": "./dist/src/device-clouds.d.ts",
+      "import": "./dist/src/device-clouds.js"
+    },
     "./analysis": {
       "types": "./dist/src/analysis/index.d.ts",
       "import": "./dist/src/analysis/index.js"

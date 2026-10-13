@@ -45,7 +45,7 @@ export type HealthOptions = Partial<HealthConfig>
 // Platform & Auth Types
 // ============================================================================
 
-export type HealthPlatformType = 'oura' | 'whoop' | 'apple_health' | 'fitbit' | 'garmin' | 'trainingpeaks' | 'withings' | 'renpho'
+export type HealthPlatformType = 'oura' | 'whoop' | 'apple_health' | 'fitbit' | 'garmin' | 'trainingpeaks' | 'withings' | 'renpho' | 'polar' | 'suunto' | 'coros' | 'wahoo'
 
 export interface AuthConfig {
   accessToken?: string
@@ -152,6 +152,8 @@ export interface SleepSession {
   timeInBed: number
   latency: number
   efficiency: number
+  /** The provider's own sleep score (0-100), where it computes one (Polar, Suunto). */
+  score?: number
   averageHeartRate?: number
   lowestHeartRate?: number
   averageHRV?: number
