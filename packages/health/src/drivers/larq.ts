@@ -1,5 +1,5 @@
-import type { SleepSession, DailySleepSummary, DailyActivity, Workout, DailyReadiness, HeartRateSample, HRVSample, DailySpO2, DailyStress, BodyTemperature, VO2MaxReading, BodyComposition, WeightMeasurement, PersonalInfo, DateRangeOptions, DailyHydration, HealthMetric, HydrationSample, WaterIntakeInput } from '../types'
-import { dailyHydration, normalizeWaterIntake } from '../hydration'
+import type { SleepSession, DailySleepSummary, DailyActivity, Workout, DailyReadiness, HeartRateSample, HRVSample, DailySpO2, DailyStress, BodyTemperature, VO2MaxReading, BodyComposition, WeightMeasurement, PersonalInfo, DateRangeOptions, DailyHydration, HealthDriver, HealthMetric, HydrationSample, WaterIntakeInput } from '../types'
+import { dailyHydration, isLarqSource, normalizeWaterIntake } from '../hydration'
 import { AppleHealthDriver } from './apple-health'
 
 export interface LarqConfig {
@@ -19,35 +19,36 @@ const DATABASE_URL = 'https://s-usc1b-nss-2136.firebaseio.com'
 const NAMESPACE = 'ferrous-cogency-215410'
 
 /** PureVis 2 intake from the LARQ account, or an Apple Health export fallback. */
-export class LarqDriver extends AppleHealthDriver {
-  override readonly name: string = 'LARQ Bottle PureVis 2'
-  override readonly type: 'larq' = 'larq'
-  override readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>(['hydration', 'dailyHydration'])
-  override async getSleep(): Promise<SleepSession[]> { return [] }
-  override async getDailySleep(): Promise<DailySleepSummary[]> { return [] }
-  override async getDailyActivity(): Promise<DailyActivity[]> { return [] }
-  override async getWorkouts(): Promise<Workout[]> { return [] }
-  override async getReadiness(): Promise<DailyReadiness[]> { return [] }
-  override async getHeartRate(): Promise<HeartRateSample[]> { return [] }
-  override async getHRV(): Promise<HRVSample[]> { return [] }
-  override async getSpO2(): Promise<DailySpO2[]> { return [] }
-  override async getStress(): Promise<DailyStress[]> { return [] }
-  override async getBodyTemperature(): Promise<BodyTemperature[]> { return [] }
-  override async getVO2Max(): Promise<VO2MaxReading[]> { return [] }
-  override async getBodyComposition(): Promise<BodyComposition[]> { return [] }
-  override async getWeightMeasurements(): Promise<WeightMeasurement[]> { return [] }
-  override async getPersonalInfo(): Promise<PersonalInfo | null> { return null }
+export class LarqDriver implements HealthDriver {
+  readonly name: string = 'LARQ Bottle PureVis 2'
+  readonly type: 'larq' = 'larq'
+  readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>(['hydration', 'dailyHydration'])
+  async getSleep(): Promise<SleepSession[]> { return [] }
+  async getDailySleep(): Promise<DailySleepSummary[]> { return [] }
+  async getDailyActivity(): Promise<DailyActivity[]> { return [] }
+  async getWorkouts(): Promise<Workout[]> { return [] }
+  async getReadiness(): Promise<DailyReadiness[]> { return [] }
+  async getHeartRate(): Promise<HeartRateSample[]> { return [] }
+  async getHRV(): Promise<HRVSample[]> { return [] }
+  async getSpO2(): Promise<DailySpO2[]> { return [] }
+  async getStress(): Promise<DailyStress[]> { return [] }
+  async getBodyTemperature(): Promise<BodyTemperature[]> { return [] }
+  async getVO2Max(): Promise<VO2MaxReading[]> { return [] }
+  async getBodyComposition(): Promise<BodyComposition[]> { return [] }
+  async getWeightMeasurements(): Promise<WeightMeasurement[]> { return [] }
+  async getPersonalInfo(): Promise<PersonalInfo | null> { return null }
 
+  private exportDriver: AppleHealthDriver | null
   private config: LarqConfig | null
   private session: { token: string, uid: string, expiresAt: number } | null = null
 
   constructor(config: LarqConfig | string) {
-    super(typeof config === 'string' ? config : '')
+    this.exportDriver = typeof config === 'string' ? new AppleHealthDriver(config) : null
     this.config = typeof config === 'string' ? null : config
   }
 
-  override isAuthenticated(): boolean {
-    return this.config ? !!this.session && this.session.expiresAt > Date.now() : super.isAuthenticated()
+  isAuthenticated(): boolean {
+    return this.config ? !!this.session && this.session.expiresAt > Date.now() : this.exportDriver!.isAuthenticated()
   }
 
   /** Verify the account before presenting it as connected. Never exposes provider tokens. */
@@ -80,8 +81,8 @@ export class LarqDriver extends AppleHealthDriver {
     catch { throw new Error('LARQ returned an unreadable response') }
   }
 
-  override async getHydration(options?: DateRangeOptions): Promise<HydrationSample[]> {
-    if (!this.config) return super.getHydration(options)
+  async getHydration(options?: DateRangeOptions): Promise<HydrationSample[]> {
+    if (!this.config) return (await this.exportDriver!.getHydration(options)).filter(sample => isLarqSource(sample.sourceName)).map(sample => ({ ...sample, source: 'larq' }))
     await this.authenticate()
     const url = new URL(`${DATABASE_URL}/liquidIntake/${encodeURIComponent(this.session!.uid)}.json`)
     url.searchParams.set('ns', NAMESPACE)
@@ -106,7 +107,7 @@ export class LarqDriver extends AppleHealthDriver {
     return samples.filter(sample => (!options?.startDate || sample.day >= options.startDate) && (!options?.endDate || sample.day <= options.endDate))
   }
 
-  override async getDailyHydration(options?: DateRangeOptions): Promise<DailyHydration[]> {
+  async getDailyHydration(options?: DateRangeOptions): Promise<DailyHydration[]> {
     return dailyHydration(await this.getHydration(options))
   }
 }

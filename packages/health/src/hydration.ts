@@ -11,7 +11,8 @@ export function waterVolumeMl(value: number | string, unit: string): number | nu
   const amount = Number(value)
   const factor = { ml: 1, l: 1000, fl_oz_us: 29.5735295625, fl_oz: 29.5735295625 }[unit.toLowerCase()] as number | undefined
   if (!factor || !Number.isFinite(amount) || amount <= 0) return null
-  return Math.round(amount * factor * 1000) / 1000
+  const volume = amount * factor
+  return Number.isFinite(volume * 1000) ? Math.round(volume * 1000) / 1000 : null
 }
 
 /** Source filtering, date filtering and stable identities shared by importers. */
@@ -24,6 +25,8 @@ export function normalizeWaterIntake(inputs: readonly WaterIntakeInput[], option
     const day = input.startDate.slice(0, 10)
     const instant = Date.parse(input.startDate)
     if (volumeMl === null || !Number.isFinite(instant) || !/^\d{4}-\d{2}-\d{2}$/.test(day)) continue
+    const calendarDay = Date.parse(`${day}T00:00:00Z`)
+    if (!Number.isFinite(calendarDay) || new Date(calendarDay).toISOString().slice(0, 10) !== day) continue
     if (options?.startDate && day < options.startDate) continue
     if (options?.endDate && day > options.endDate) continue
     const timestamp = new Date(instant).toISOString()

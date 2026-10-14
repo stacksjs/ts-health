@@ -33,6 +33,8 @@ describe('LARQ PureVis 2 hydration', () => {
         <Record type="HKQuantityTypeIdentifierDietaryWater" sourceName="LARQ" unit="L" startDate="2026-10-14 10:00:00 -0700" value="0.5"><MetadataEntry key="a" value="b"/></Record>
         <Record type="HKQuantityTypeIdentifierDietaryWater" sourceName="Other app" unit="mL" startDate="2026-10-14 11:00:00 -0700" value="1000"/>
       </HealthData>`)
+      const appleType: 'apple_health' = createAppleHealthDriver(path).type
+      expect(appleType).toBe('apple_health')
       const larq = createLarqDriver(path)
       expect(larq.isAuthenticated()).toBe(true)
       expect([...larq.supportedMetrics]).toEqual(['hydration', 'dailyHydration'])
