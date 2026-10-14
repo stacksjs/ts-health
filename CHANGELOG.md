@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.11...v0.1.12)
+
+## ✨ Features
+
+- read PureVis 2 sensor history over Bluetooth ([d2651f1](https://github.com/stacksjs/ts-health/commit/d2651f1)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.12 ([dcccd31](https://github.com/stacksjs/ts-health/commit/dcccd31)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.10...v0.1.11)
 
 ## 🐛 Bug Fixes
