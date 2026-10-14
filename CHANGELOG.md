@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.10...v0.1.11)
+
+## 🐛 Bug Fixes
+
+- preserve Apple Health driver type while composing LARQ imports ([31c6c7e](https://github.com/stacksjs/ts-health/commit/31c6c7e)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.11 ([eef8add](https://github.com/stacksjs/ts-health/commit/eef8add)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.9...v0.1.10)
 
 ## ✨ Features
