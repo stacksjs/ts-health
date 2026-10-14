@@ -2,7 +2,7 @@
   "name": "ts-health",
   "type": "module",
   "version": "0.1.9",
-  "description": "TypeScript library for health, fitness & smartwatch data. Oura Ring, WHOOP, Apple Health, Fitbit, Garmin, Polar, Suunto, Coros, Wahoo — with FIT parsing, training metrics, and more.",
+  "description": "TypeScript library for health, fitness & smartwatch data. Oura Ring, WHOOP, Apple Health, Fitbit, Garmin, Polar, Suunto, Coros, Wahoo \u2014 with FIT parsing, training metrics, and more.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
   "publishConfig": {
@@ -61,6 +61,10 @@
     "./analysis": {
       "types": "./dist/src/analysis/index.d.ts",
       "import": "./dist/src/analysis/index.js"
+    },
+    "./hydration": {
+      "types": "./dist/src/hydration.d.ts",
+      "import": "./dist/src/hydration.js"
     }
   },
   "module": "./dist/src/index.js",

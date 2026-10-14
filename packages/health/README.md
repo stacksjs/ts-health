@@ -39,3 +39,39 @@ See the [repository documentation](https://github.com/stacksjs/ts-health#readme)
 ## License
 
 MIT
+
+## LARQ Bottle PureVis 2 hydration
+
+Connect with the email and password used in the LARQ companion app. This
+unofficial, read-only integration uses the same Firebase account backend as
+OpenLARQ. It works independently of Apple Health, so an Android user can also
+connect. The LARQ app must sync the bottle before new intake appears in the
+cloud. Apple/Google social sign-in is not supported by password authentication.
+
+```ts
+import { createLarqDriver } from 'ts-health'
+
+const bottle = createLarqDriver({
+  email: process.env.LARQ_EMAIL!,
+  password: process.env.LARQ_PASSWORD!,
+  timezone: 'America/Los_Angeles',
+})
+const days = await bottle.getDailyHydration() // volumeMl, samples, day
+```
+
+As an alternative, enable water sharing in the LARQ app, export Apple Health's
+`export.xml`, and call `createLarqDriver('/path/to/export.xml')`. Only dietary-water
+records whose source name is LARQ are included. Upload another export to get
+new readings. `createAppleHealthDriver(path)` also supports water from all apps.
+Both drivers expose `getHydration()` and `getDailyHydration()` and accept an
+inclusive `{ startDate, endDate }` range. Water is canonical millilitres; days
+preserve the export's local dates, or use the configured zone for cloud data.
+
+Cloud events retain their Firebase identity. Deleted events, coffee, tea and
+invalid volumes are excluded. Unknown export units are not guessed. Authentication
+and permission errors are reported without credentials or provider response bodies.
+The unofficial API can change; real-account compatibility must be verified with
+the user's LARQ account. Direct Bluetooth hydration decoding is not implemented.
+
+Protocol references: [OpenLARQ](https://github.com/lavyyy/openlarq),
+[LARQ Apple Health compatibility](https://support.livelarq.com/hc/en-us/articles/37061029850011-Apple-Health-compatibility).

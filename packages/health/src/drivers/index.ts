@@ -14,3 +14,6 @@ export { RenphoDriver, createRenphoDriver } from './renpho'
 
 // Watch makers' clouds: activities as their original .fit, plus daily readings
 export * from '../device-clouds'
+
+export { LarqDriver, createLarqDriver } from './larq'
+export type { LarqConfig } from './larq'

@@ -5,6 +5,7 @@ const entrypoints = [
   'src/index.ts',
   'src/drivers/index.ts',
   'src/device-clouds.ts',
+  'src/hydration.ts',
   'src/analysis/index.ts',
   'bin/cli.ts',
 ]

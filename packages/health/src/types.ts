@@ -45,7 +45,7 @@ export type HealthOptions = Partial<HealthConfig>
 // Platform & Auth Types
 // ============================================================================
 
-export type HealthPlatformType = 'oura' | 'whoop' | 'apple_health' | 'fitbit' | 'garmin' | 'trainingpeaks' | 'withings' | 'renpho' | 'polar' | 'suunto' | 'coros' | 'wahoo'
+export type HealthPlatformType = 'oura' | 'whoop' | 'apple_health' | 'fitbit' | 'garmin' | 'trainingpeaks' | 'withings' | 'renpho' | 'polar' | 'suunto' | 'coros' | 'wahoo' | 'larq'
 
 export interface AuthConfig {
   accessToken?: string
@@ -87,6 +87,8 @@ export type HealthMetric =
   | 'bodyComposition'
   | 'weightMeasurements'
   | 'personalInfo'
+  | 'hydration'
+  | 'dailyHydration'
 
 export interface HealthDriver {
   readonly name: string
@@ -108,6 +110,8 @@ export interface HealthDriver {
   getVO2Max(options?: DateRangeOptions): Promise<VO2MaxReading[]>
   getBodyComposition(options?: DateRangeOptions): Promise<BodyComposition[]>
   getWeightMeasurements(options?: DateRangeOptions): Promise<WeightMeasurement[]>
+  getHydration?(options?: DateRangeOptions): Promise<HydrationSample[]>
+  getDailyHydration?(options?: DateRangeOptions): Promise<DailyHydration[]>
   getPersonalInfo(): Promise<PersonalInfo | null>
 }
 
@@ -827,4 +831,30 @@ export interface SleepDebtAnalysis {
   targetMinutes: number
   trend: 'accumulating' | 'stable' | 'recovering'
   daysToRecover: number
+}
+
+/** Water intake, stored canonically in millilitres. */
+export interface HydrationSample {
+  id: string
+  day: string
+  timestamp: string
+  volumeMl: number
+  source: HealthPlatformType
+  sourceName: string
+}
+
+export interface DailyHydration {
+  day: string
+  volumeMl: number
+  samples: number
+  source: HealthPlatformType
+}
+
+/** A water quantity read from HealthKit or an Apple Health export. */
+export interface WaterIntakeInput {
+  id?: string
+  startDate: string
+  value: number | string
+  unit: string
+  sourceName: string
 }

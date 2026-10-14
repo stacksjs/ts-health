@@ -193,3 +193,5 @@ export type {
   HealthTrend,
   SleepDebtAnalysis,
 } from './types'
+
+export * from './hydration'

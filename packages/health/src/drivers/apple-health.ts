@@ -1,6 +1,10 @@
+import { dailyHydration, normalizeWaterIntake } from '../hydration'
 import { readFileSync, existsSync } from 'node:fs'
 import type {
   HealthMetric,
+  HealthPlatformType,
+  HydrationSample,
+  DailyHydration,
   HealthDriver,
   DateRangeOptions,
   SleepSession,
@@ -44,12 +48,12 @@ interface AppleHealthWorkoutRecord {
 }
 
 export class AppleHealthDriver implements HealthDriver {
-  readonly name = 'Apple Health'
-  readonly type: 'apple_health' = 'apple_health'
+  readonly name: string = 'Apple Health'
+  readonly type: HealthPlatformType = 'apple_health'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>([
     'sleep', 'dailySleep', 'dailyActivity', 'workouts', 'heartRate',
     'hrv', 'spo2', 'bodyTemperature', 'vo2Max', 'bodyComposition',
-    'weightMeasurements', 'personalInfo',
+    'weightMeasurements', 'personalInfo', 'hydration', 'dailyHydration',
   ])
 
   private exportPath: string
@@ -80,7 +84,7 @@ export class AppleHealthDriver implements HealthDriver {
 
   private parseHealthRecords(xml: string): AppleHealthRecord[] {
     const records: AppleHealthRecord[] = []
-    const recordRegex = /<Record\s+([^>]+)\/>/g
+    const recordRegex = /<Record\s+([^>]+)>/g
     let match: RegExpExecArray | null
 
     while ((match = recordRegex.exec(xml)) !== null) {
@@ -464,6 +468,14 @@ export class AppleHealthDriver implements HealthDriver {
   // ===========================================================================
   // Personal Info
   // ===========================================================================
+
+  async getHydration(options?: DateRangeOptions): Promise<HydrationSample[]> {
+    return normalizeWaterIntake(this.getRecordsByType('HKQuantityTypeIdentifierDietaryWater', options), options, this.type)
+  }
+
+  async getDailyHydration(options?: DateRangeOptions): Promise<DailyHydration[]> {
+    return dailyHydration(await this.getHydration(options))
+  }
 
   async getPersonalInfo(): Promise<PersonalInfo | null> {
     this.ensureLoaded()
