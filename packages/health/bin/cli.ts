@@ -5,7 +5,7 @@ import type { HealthDriver, HealthMetric, DateRangeOptions } from '../src/types'
 
 const cli = new CLI('health')
 
-const ALL_DRIVERS = 'oura, whoop, fitbit, apple-health, garmin, trainingpeaks, withings, renpho'
+const ALL_DRIVERS = 'oura, whoop, fitbit, apple-health, garmin, trainingpeaks, withings, renpho, eight-sleep'
 
 // ============================================================================
 // Shared types & helpers
@@ -27,7 +27,7 @@ interface CommonOptions {
 async function resolveDriver(options: CommonOptions): Promise<HealthDriver | null> {
   const driverName = options.driver || 'oura'
 
-  if (!options.token && driverName !== 'apple-health' && driverName !== 'renpho' && driverName !== 'garmin' && driverName !== 'trainingpeaks') {
+  if (!options.token && driverName !== 'apple-health' && driverName !== 'renpho' && driverName !== 'garmin' && driverName !== 'trainingpeaks' && driverName !== 'eight-sleep') {
     console.error('Missing --token option')
     return null
   }
@@ -40,8 +40,15 @@ async function resolveDriver(options: CommonOptions): Promise<HealthDriver | nul
   const { createRenphoDriver } = await import('../src/drivers/renpho')
   const { createGarminHealthDriver } = await import('../src/drivers/garmin')
   const { createTrainingPeaksHealthDriver } = await import('../src/drivers/trainingpeaks')
+  const { createEightSleepDriver } = await import('../src/eight-sleep')
 
   switch (driverName) {
+    case 'eight-sleep':
+      if (!options.email || !options.password) {
+        console.error('Eight Sleep requires --email and --password options')
+        return null
+      }
+      return createEightSleepDriver({ email: options.email, password: options.password })
     case 'oura':
       return createOuraDriver(options.token)
     case 'whoop':

@@ -7,6 +7,7 @@ const entrypoints = [
   'src/device-clouds.ts',
   'src/hydration.ts',
   'src/larq/index.ts',
+  'src/eight-sleep/index.ts',
   'src/analysis/index.ts',
   'bin/cli.ts',
 ]

@@ -17,3 +17,5 @@ export * from '../device-clouds'
 
 export { LarqDriver, createLarqDriver } from './larq'
 export type { LarqConfig } from './larq'
+
+export * from '../eight-sleep'

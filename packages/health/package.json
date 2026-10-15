@@ -69,6 +69,10 @@
     "./larq": {
       "types": "./dist/src/larq/index.d.ts",
       "import": "./dist/src/larq/index.js"
+    },
+    "./eight-sleep": {
+      "types": "./dist/src/eight-sleep/index.d.ts",
+      "import": "./dist/src/eight-sleep/index.js"
     }
   },
   "module": "./dist/src/index.js",

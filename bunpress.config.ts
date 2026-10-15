@@ -25,6 +25,7 @@ export default {
         items: [
           { text: 'Oura Ring', link: '/features/oura-ring' },
           { text: 'WHOOP', link: '/features/whoop' },
+          { text: 'Eight Sleep', link: '/eight-sleep' },
           { text: 'Apple Health', link: '/features/apple-health' },
           { text: 'Fitbit', link: '/features/fitbit' },
           { text: 'Smart Scales', link: '/features/smart-scales' },

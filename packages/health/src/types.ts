@@ -37,6 +37,7 @@ export interface HealthConfig {
   fitbit?: FitbitConfig
   withings?: WithingsConfig
   renpho?: RenphoConfig
+  eightSleep?: import('./eight-sleep/types').EightSleepConfig
 }
 
 export type HealthOptions = Partial<HealthConfig>
@@ -45,7 +46,7 @@ export type HealthOptions = Partial<HealthConfig>
 // Platform & Auth Types
 // ============================================================================
 
-export type HealthPlatformType = 'oura' | 'whoop' | 'apple_health' | 'fitbit' | 'garmin' | 'trainingpeaks' | 'withings' | 'renpho' | 'polar' | 'suunto' | 'coros' | 'wahoo' | 'larq'
+export type HealthPlatformType = 'oura' | 'whoop' | 'apple_health' | 'fitbit' | 'garmin' | 'trainingpeaks' | 'withings' | 'renpho' | 'polar' | 'suunto' | 'coros' | 'wahoo' | 'larq' | 'eight_sleep'
 
 export interface AuthConfig {
   accessToken?: string

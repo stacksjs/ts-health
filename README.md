@@ -727,7 +727,11 @@ Cloud events retain their Firebase identity. Deleted events, coffee, tea and
 invalid volumes are excluded. Unknown export units are not guessed. Authentication
 and permission errors are reported without credentials or provider response bodies.
 The unofficial API can change; real-account compatibility must be verified with
-the user's LARQ account. Direct Bluetooth hydration decoding is not implemented.
+the user's LARQ account. Direct PureVis 2 Bluetooth intake decoding is available through `ts-health/larq`; see [the Bluetooth guide](docs/larq-bluetooth.md).
 
 Protocol references: [OpenLARQ](https://github.com/lavyyy/openlarq),
 [LARQ Apple Health compatibility](https://support.livelarq.com/hc/en-us/articles/37061029850011-Apple-Health-compatibility).
+
+## Eight Sleep Pod integration
+
+Use `createEightSleepDriver` from `ts-health/eight-sleep` for sleep reports, stages, HR/HRV, respiratory trends, bed/room temperatures and capability-aware Pod controls. Temperature, smart-schedule levels, alarms, base presets/angles, supported pillow/audio controls, LED brightness and priming are supported through the unofficial cloud API. No Apple Health dependency. Proprietary Eight Sleep algorithms and setup remain in the manufacturer app. See [the complete feature coverage and setup guide](docs/eight-sleep.md).
