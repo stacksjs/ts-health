@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.13...v0.1.14)
+
+## 🐛 Bug Fixes
+
+- reject Eight Sleep controls when the selected Pod changes ([e7ff58e](https://github.com/stacksjs/ts-health/commit/e7ff58e)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.14 ([8ca1aa1](https://github.com/stacksjs/ts-health/commit/8ca1aa1)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.12...v0.1.13)
 
 ## ✨ Features
