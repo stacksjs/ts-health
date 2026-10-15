@@ -1,5 +1,20 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.14...v0.1.15)
+
+## 📝 Documentation
+
+- clarify live heart rate transports and broadcasts ([2605b01](https://github.com/stacksjs/ts-health/commit/2605b01)) _(by Chris Breuer <chris@stacksjs.com>)_
+
+## 🔧 Chores
+
+- release v0.1.15 ([11614c6](https://github.com/stacksjs/ts-health/commit/11614c6)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+- _Chris Breuer <chris@stacksjs.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.13...v0.1.14)
 
 ## 🐛 Bug Fixes
