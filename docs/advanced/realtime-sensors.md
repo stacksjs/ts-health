@@ -1,116 +1,31 @@
-# Real-time Sensors
+# Real-time sensors
 
-ts-health supports connecting to ANT+ and Bluetooth Low Energy (BLE) sensors for real-time data streaming. Use this for live tracking, recording custom workouts, or building training applications with real-time feedback.
-
-## ANT+ Sensors
-
-Connect to ANT+ heart rate monitors, power meters, and speed/cadence sensors:
+The protocol helpers come from `ts-watches`, which `ts-health` reexports from its main entrypoint. Import the browser-safe `ts-watches` entrypoint directly when receiving Bluetooth heart-rate broadcasts in a browser or a native shell:
 
 ```typescript
-import { createANTClient } from 'ts-health'
+import { BLE_SERVICES, BLE_CHARACTERISTICS, parseHeartRateMeasurement } from 'ts-watches/bluetooth'
 
-const ant = createANTClient()
-
-// Scan for nearby ANT+ devices
-const devices = await ant.scan()
-for (const device of devices) {
-  console.log(`${device.type}: ${device.deviceId}`)
+// The host supplies a DataView from Heart Rate Measurement notifications.
+function onMeasurement(value: DataView) {
+  try {
+    const reading = parseHeartRateMeasurement(value)
+    if (reading.heartRate > 0 && reading.contactDetected !== false)
+      console.log(`${reading.heartRate} bpm`, reading.rrIntervals)
+  }
+  catch (error) {
+    // An incomplete notification is not a live reading. Wait for the next one.
+  }
 }
 
-// Connect to a heart rate monitor
-ant.onHeartRate((data) => {
-  console.log(`HR: ${data.heartRate}bpm`)
-})
-
-// Connect to a power meter
-ant.onPower((data) => {
-  console.log(`Power: ${data.instantaneousPower}W | Cadence: ${data.cadence}rpm`)
-})
-
-// Connect to speed/cadence sensor
-ant.onSpeedCadence((data) => {
-  console.log(`Speed: ${data.speed}km/h | Cadence: ${data.cadence}rpm`)
-})
+console.log(BLE_SERVICES.HEART_RATE, BLE_CHARACTERISTICS.HEART_RATE_MEASUREMENT)
 ```
 
-## BLE Sensors
+Garmin watches with Bluetooth heart-rate broadcasting use the standard Heart Rate Service, just like a chest strap. Enable **Broadcast Heart Rate** on the watch before pairing. A watch that broadcasts only over ANT+ needs an ANT+ receiver; a Bluetooth connection to Garmin Connect does not prove that the watch can broadcast its heart rate over Bluetooth. See [Garmin broadcast compatibility](https://support.garmin.com/en-US/?faq=Zj1947s6pqAHzBCAhLhrC9).
 
-Connect to Bluetooth Low Energy fitness sensors:
+The decoder handles 8-bit and 16-bit BPM, optional skin contact, energy expended, and RR intervals converted from 1/1024 seconds to milliseconds. It rejects incomplete fields with a `RangeError`. Zero BPM and failed skin contact should be treated as unavailable by the application. Clear old readings when notifications stop.
 
-```typescript
-import { createBLEClient } from 'ts-health'
+## Host transport
 
-const ble = createBLEClient()
+This entrypoint has no Node filesystem or device-driver imports. It decodes notifications; it does not grant Bluetooth permissions or connect a radio. Use the host's native Bluetooth service in an iPhone or Android app. In a browser that supports Web Bluetooth, request the standard heart-rate service from a user gesture, connect its measurement characteristic, and subscribe to notifications. Browser support and background behavior differ from native apps.
 
-// Scan for BLE devices
-const devices = await ble.scan({ timeout: 10000 })
-for (const device of devices) {
-  console.log(`${device.name}: ${device.id}`)
-}
-
-// Connect to a specific device
-const hrMonitor = await ble.connect(devices[0])
-
-// Stream heart rate data
-hrMonitor.onData((data) => {
-  console.log(`HR: ${data.heartRate}bpm`)
-})
-```
-
-## Supported Sensor Types
-
-| Sensor Type | ANT+ | BLE | Data |
-|------------|-------|-----|------|
-| Heart Rate Monitor | Yes | Yes | Heart rate (bpm), RR intervals |
-| Power Meter | Yes | Yes | Power (W), cadence (rpm), torque |
-| Speed Sensor | Yes | Yes | Speed (m/s), wheel revolutions |
-| Cadence Sensor | Yes | Yes | Cadence (rpm), crank revolutions |
-| Speed/Cadence Combo | Yes | Yes | Both speed and cadence |
-| Foot Pod | Yes | Yes | Speed, cadence, stride length |
-| Cycling Trainer | Yes | Yes | Power, speed, resistance |
-
-## Use Cases
-
-### Live Training Dashboard
-
-```typescript
-import { createANTClient, ZoneCalculator } from 'ts-health'
-
-const ant = createANTClient()
-const zones = new ZoneCalculator({ maxHR: 185, restingHR: 50, ftp: 250 })
-
-ant.onHeartRate((data) => {
-  const zone = zones.getHRZone(data.heartRate)
-  console.log(`HR: ${data.heartRate}bpm — Zone ${zone.number} (${zone.name})`)
-})
-
-ant.onPower((data) => {
-  const zone = zones.getPowerZone(data.instantaneousPower)
-  console.log(`Power: ${data.instantaneousPower}W — Zone ${zone.number} (${zone.name})`)
-})
-```
-
-### Recording Custom Workouts
-
-```typescript
-import { createBLEClient, WorkoutBuilder, exportToTCX } from 'ts-health'
-
-const ble = createBLEClient()
-const builder = new WorkoutBuilder()
-
-// Start recording
-builder.start()
-
-const hrMonitor = await ble.connect(hrDevice)
-hrMonitor.onData((data) => {
-  builder.addRecord({
-    timestamp: new Date(),
-    heartRate: data.heartRate,
-  })
-})
-
-// After workout
-builder.stop()
-const activity = builder.build()
-await exportToTCX(activity, '/path/to/custom-workout.tcx')
-```
+`createBleScanner()` and `createAntPlusScanner()` currently return mock scanners. They are test fixtures, not production hardware transports. The library does not export `createBLEClient` or `createANTClient`.
