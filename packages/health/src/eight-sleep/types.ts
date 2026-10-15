@@ -14,6 +14,8 @@ export interface EightSleepConfig {
   clientSecret?: string
   session?: EightSleepSession
   timezone?: string
+  /** Refuse controls/read state if the account has switched to a different Pod. Never selects a Pod implicitly. */
+  expectedDeviceId?: string
   fetch?: (url: string, init?: RequestInit) => Promise<Response>
   onSession?: (session: EightSleepSession) => void | Promise<void>
 }

@@ -21,7 +21,9 @@ await pod.execute({ action: 'temperature', level: -20, durationSeconds: 3600 })
 
 The public companion-app OAuth client configuration is built in. `clientId` and
 `clientSecret` override it. `session` restores a saved token; `onSession` saves a
-new one. Eight Sleep's observed authentication uses password sign-in again on
+new one. Pass the displayed Pod's ID as `expectedDeviceId` when executing a
+control to refuse the action if the account has selected a different Pod.
+Eight Sleep's observed authentication uses password sign-in again on
 expiry, so server applications that reconnect automatically must retain the
 account credentials securely. Never put passwords in a browser bundle or log
 provider response bodies. `fetch` is injectable for tests.

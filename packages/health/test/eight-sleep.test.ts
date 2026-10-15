@@ -143,6 +143,12 @@ describe('Eight Sleep authenticated cloud client', () => {
     await expect(client.execute({ action: 'power', enabled: true })).rejects.toThrow('expired')
     expect(calls.filter(call => call.method === 'PUT')).toHaveLength(1)
   })
+  it('refuses physical writes when the account has switched away from the displayed Pod', async () => {
+    const { fetch, calls } = fixture()
+    const driver = createEightSleepDriver({ email: 'self@example.test', password: 'private', expectedDeviceId: 'different-pod', fetch })
+    await expect(driver.execute({ action: 'power', enabled: true })).rejects.toThrow('selected Pod changed')
+    expect(calls.filter(call => call.method === 'PUT')).toHaveLength(0)
+  })
   it('uses the observed payloads for accessory, maintenance, repeating alarm and side controls', async () => {
     const commands: Array<[EightSleepCommand, string, Record<string, unknown>]> = [
       [{ action: 'side', side: 'solo' }, '/v1/users/self/current-device', { id: 'pod', side: 'solo' }],

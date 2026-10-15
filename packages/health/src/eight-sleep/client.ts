@@ -163,6 +163,7 @@ export class EightSleepClient {
         const current = user.currentDevice ?? {}
         const deviceId = current.id ?? current.deviceId ?? user.devices?.[0]
         if (typeof deviceId !== 'string' || !deviceId) throw new EightSleepError('No Pod is linked to this Eight Sleep account', 404)
+        if (this.config.expectedDeviceId && this.config.expectedDeviceId !== deviceId) throw new EightSleepError('Your selected Pod changed. Refresh its state before trying again.', 409)
         const result = await this.request('client', `/devices/${encodeURIComponent(deviceId)}`)
         if (!result?.result || typeof result.result !== 'object') throw new EightSleepError('Eight Sleep returned an unreadable Pod', 502)
         const device = result.result
