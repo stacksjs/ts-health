@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.12...v0.1.13)
+
+## ✨ Features
+
+- integrate Eight Sleep reports and capability-aware Pod controls ([b0e85b0](https://github.com/stacksjs/ts-health/commit/b0e85b0)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.13 ([d11f704](https://github.com/stacksjs/ts-health/commit/d11f704)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.11...v0.1.12)
 
 ## ✨ Features
