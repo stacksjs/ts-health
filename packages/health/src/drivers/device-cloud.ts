@@ -45,6 +45,8 @@ export interface CloudActivity {
   provider: DeviceCloudProvider
   /** What the athlete or the watch called it, when the provider says. */
   name?: string
+  /** Partner workout id returned by COROS, for exact pairing with its plan. */
+  plannedWorkoutId?: string
   /** The provider's sport, as a lower-case snake key ("running", "road_cycling", "pool_swimming"). */
   sport: string
   /** The start, as an ISO instant in UTC. */

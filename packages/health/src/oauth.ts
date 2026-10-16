@@ -158,6 +158,8 @@ export async function exchangeDeviceCode(provider: DeviceCloudProvider, client: 
   })
   if (!raw?.access_token)
     throw new DeviceOAuthError(provider, 200, `${provider} token answer carried no access_token: ${JSON.stringify(raw).slice(0, 200)}`)
+  if (provider === 'coros' && (typeof raw.openId !== 'string' || !raw.openId.trim()))
+    throw new DeviceOAuthError(provider, 200, 'coros token answer carried no openId')
   const tokens: DeviceTokens = { accessToken: String(raw.access_token) }
   if (raw.refresh_token)
     tokens.refreshToken = String(raw.refresh_token)

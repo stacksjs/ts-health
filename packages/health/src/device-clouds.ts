@@ -10,7 +10,7 @@ export type { PolarClientCredentials, PolarDriverOptions, PolarWebhook } from '.
 export { createSuuntoCloudDriver, SuuntoCloudDriver } from './drivers/suunto'
 export type { SuuntoDriverOptions } from './drivers/suunto'
 export { CorosCloudDriver, createCorosCloudDriver } from './drivers/coros'
-export type { CorosDriverOptions } from './drivers/coros'
+export type { CorosDriverOptions, CorosTrainingSchedule, CorosTrainingStep, CorosTrainingWorkout } from './drivers/coros'
 export { createWahooCloudDriver, WahooCloudDriver } from './drivers/wahoo'
 export type { WahooDriverOptions } from './drivers/wahoo'
 export * from './oauth'

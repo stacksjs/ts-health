@@ -183,8 +183,14 @@ export function startFakeClouds(): FakeClouds {
 
       // --- COROS ------------------------------------------------------------
       if (prefix === 'coros') {
-        if (url.searchParams.get('token') !== TOKENS.coros || url.searchParams.get('openId') !== COROS_OPEN_ID)
+        if ((url.searchParams.get('token') || form.get('token')) !== TOKENS.coros || (url.searchParams.get('openId') || form.get('openId')) !== COROS_OPEN_ID)
           return Response.json({ result: '5006', message: 'access token invalid' })
+        if (path === '/coros/tp/list/push') {
+          const data = JSON.parse(form.get('data') || '{}')
+          return Response.json({ result: '0000', data: { StartDate: data.StartDate, EndDate: data.EndDate } })
+        }
+        if (path === '/coros/tp/workout/deleteById')
+          return Response.json({ result: '0000', data: { successIdList: JSON.parse(form.get('workoutIds') || '[]'), failIdList: [] } })
         const start = url.searchParams.get('startDate') || ''
         const end = url.searchParams.get('endDate') || ''
         const days = (Date.parse(`${end.slice(0, 4)}-${end.slice(4, 6)}-${end.slice(6)}`) - Date.parse(`${start.slice(0, 4)}-${start.slice(4, 6)}-${start.slice(6)}`)) / 86_400_000
@@ -196,14 +202,14 @@ export function startFakeClouds(): FakeClouds {
         }
         if (path === '/v2/coros/sport/list') {
           const all = [
-            { labelId: '466877262305574912', mode: 9, subMode: 1, startTime: day(1) / 1000, endTime: day(1) / 1000 + 5400, startTimezone: 8, endTimezone: 8, distance: 45100.2, duration: 5400, fitUrl: `${state.url}/files/coros/466877262305574912.fit` },
+            { labelId: '466877262305574912', mode: 9, subMode: 1, startTime: day(1) / 1000, endTime: day(1) / 1000 + 5400, startTimezone: 8, endTimezone: 8, distance: 45100.2, duration: 5400, calorie: 850000, planWorkoutId: 42, fitUrl: `${state.url}/files/coros/466877262305574912.fit` },
             { labelId: '466877262305574999', mode: 13, subMode: 1, startTime: day(-50) / 1000, endTime: day(-50) / 1000 + 7200, startTimezone: 8, endTimezone: 8 },
           ]
           return Response.json({ result: '0000', message: 'OK', data: all.filter(w => within(w.startTime)) })
         }
         if (path === '/coros/daily/query') {
           const rows = [{ happenDay: '20261012', step: 13400, calorie: 2300000, rhr: 46, ppgHrv: 71, sleepAvgHr: 50, sleepStartTime: '2026-10-11 23:30:00', sleepEndTime: '2026-10-12 06:45:00', startTimezone: 8, endTimezone: 8 }]
-          return Response.json({ result: '0000', message: 'OK', data: rows.filter(row => row.happenDay >= start && row.happenDay <= end) })
+          return Response.json({ result: '0000', message: 'OK', data: { dailyList: rows.filter(row => row.happenDay >= start && row.happenDay <= end) } })
         }
         return Response.json({ result: '1004', message: 'unknown path' })
       }

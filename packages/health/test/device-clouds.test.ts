@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, setSystemTime } from 'bun:test'
 import { createHmac } from 'node:crypto'
 import {
   CorosCloudDriver,
@@ -20,6 +20,9 @@ import {
   WahooCloudDriver,
 } from '../src/device-clouds'
 import { CLIENT, COROS_OPEN_ID, FIT_BYTES, type FakeClouds, startFakeClouds, SUUNTO_KEY, TOKENS } from './fakes/device-clouds'
+
+beforeEach(() => setSystemTime(new Date('2026-10-16T12:00:00Z')))
+afterEach(() => setSystemTime())
 
 let fake: FakeClouds
 beforeAll(() => { fake = startFakeClouds() })
@@ -196,7 +199,7 @@ describe('COROS', () => {
     expect(lists.map(call => [call.query.startDate, call.query.endDate])).toEqual([['20260801', '20260830'], ['20260831', '20260929'], ['20260930', '20261014']])
     expect(lists.every(call => call.query.token === TOKENS.coros && call.query.openId === COROS_OPEN_ID)).toBe(true)
     expect(rides.map(r => r.id)).toEqual(['466877262305574912', '466877262305574999'])
-    expect(rides[0]).toMatchObject({ sport: 'cycling', startTime: '2026-10-11T06:30:00.000Z', utcOffsetMinutes: 120, durationSeconds: 5400, distanceMeters: 45100.2, hasFile: true })
+    expect(rides[0]).toMatchObject({ sport: 'cycling', startTime: '2026-10-11T06:30:00.000Z', utcOffsetMinutes: 120, durationSeconds: 5400, distanceMeters: 45100.2, calories: 850, plannedWorkoutId: '42', hasFile: true })
     expect(rides[1]).toMatchObject({ sport: 'triathlon', hasFile: false, durationSeconds: 7200 })
   })
 
@@ -209,11 +212,36 @@ describe('COROS', () => {
   })
 
   it('reads steps, resting heart rate, HRV and the night\'s window in the athlete\'s zone', async () => {
-    expect(await coros().getDailyActivity(RANGE)).toMatchObject([{ day: '2026-10-12', steps: 13400 }])
+    expect(await coros().getDailyActivity(RANGE)).toMatchObject([{ day: '2026-10-12', steps: 13400, totalCalories: 2300 }])
     expect(await coros().getHeartRate(RANGE)).toEqual([{ timestamp: '2026-10-12', bpm: 46, source: 'resting' }])
     expect(await coros().getHRV(RANGE)).toEqual([{ timestamp: '2026-10-12', hrv: 71 }])
-    const [night] = await coros().getSleep(RANGE)
+    const driver = coros()
+    fake.calls.length = 0
+    const [night] = await driver.getSleep(RANGE)
+    await Promise.all([driver.getHRV(RANGE), driver.getHeartRate(RANGE), driver.getDailyActivity(RANGE)])
+    expect(fake.calls.filter(call => call.path.endsWith('/daily/query'))).toHaveLength(1)
     expect(night).toMatchObject({ day: '2026-10-12', bedtimeStart: '2026-10-11T21:30:00.000Z', bedtimeEnd: '2026-10-12T04:45:00.000Z', totalSleepDuration: 26100, averageHeartRate: 50 })
+  })
+
+  it('clips requests to the provider history instead of sending years it will refuse', async () => {
+    fake.calls.length = 0
+    await coros().listActivities({ startDate: '2000-01-01' })
+    const first = fake.calls.find(call => call.path.endsWith('/sport/list'))!
+    expect(first.query.startDate).toBe('20260716')
+    expect(fake.calls.filter(call => call.path.endsWith('/sport/list')).length).toBeLessThanOrEqual(4)
+  })
+
+  it('sends and removes a stable partner workout id using form-encoded JSON', async () => {
+    const driver = coros()
+    const schedule = { AthleteId: 7, StartDate: '2026-10-18', EndDate: '2026-10-18', Workouts: [{ Id: 42, Title: 'Intervals', LastModifiedDate: '2026-10-16T10:00:00', WorkoutDay: '2026-10-18', WorkoutType: 'Run' as const, Structure: [{ Type: 'Step' as const, Length: { Unit: 'Second' as const, Value: 600 } }] }] }
+    await driver.pushTrainingSchedule(schedule)
+    const form = new URLSearchParams(fake.calls.at(-1)!.body)
+    expect(form.get('token')).toBe(TOKENS.coros)
+    expect(form.get('openId')).toBe(COROS_OPEN_ID)
+    expect(JSON.parse(form.get('data')!)).toEqual(schedule)
+    await driver.deleteTrainingWorkouts([42])
+    expect(new URLSearchParams(fake.calls.at(-1)!.body).get('workoutIds')).toBe('[42]')
+    expect(driver.pushTrainingSchedule({ ...schedule, Workouts: [] })).rejects.toThrow('1–30')
   })
 
   it('deauthorizes with the token in the query', async () => {
