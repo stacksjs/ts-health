@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.15...v0.1.16)
+
+## ✨ Features
+
+- **coros**: normalize daily data and support planned workout delivery ([7923b88](https://github.com/stacksjs/ts-health/commit/7923b88)) _(by Chris Breuer <chris@stacksjs.com>)_
+
+## 🔧 Chores
+
+- release v0.1.16 ([5b1e82a](https://github.com/stacksjs/ts-health/commit/5b1e82a)) _(by Chris Breuer <chris@stacksjs.com>)_
+
+## Contributors
+
+- _Chris Breuer <chris@stacksjs.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.14...v0.1.15)
 
 ## 📝 Documentation
