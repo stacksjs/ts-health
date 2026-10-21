@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.17...v0.1.18)
+
+## 🐛 Bug Fixes
+
+- **coros**: publish concrete driver types and preserve daily calories ([f869310](https://github.com/stacksjs/ts-health/commit/f869310)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.18 ([e42ff18](https://github.com/stacksjs/ts-health/commit/e42ff18)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.16...v0.1.17)
 
 ## ✨ Features
