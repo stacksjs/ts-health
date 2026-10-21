@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.16...v0.1.17)
+
+## ✨ Features
+
+- **coros**: add public MCP OAuth and health transport ([b16548c](https://github.com/stacksjs/ts-health/commit/b16548c)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.17 ([d84faca](https://github.com/stacksjs/ts-health/commit/d84faca)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.15...v0.1.16)
 
 ## ✨ Features

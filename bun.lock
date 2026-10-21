@@ -13,7 +13,7 @@
     },
     "packages/health": {
       "name": "ts-health",
-      "version": "0.1.16",
+      "version": "0.1.17",
       "bin": {
         "health": "./dist/bin/cli.js",
       },
