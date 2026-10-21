@@ -192,10 +192,11 @@ export function parseCorosMcpActivities(text: string): CloudActivity[] {
 }
 
 export class CorosMcpDriver extends BaseDeviceCloudDriver {
-  readonly name = 'COROS'
-  readonly provider = 'coros' as const
+  readonly name: string = 'COROS'
+  readonly provider: 'coros' = 'coros'
   readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set(['workouts', 'dailyActivity', 'heartRate', 'hrv', 'sleep'])
   readonly mcp: CorosMcpClient
+  private daily: { at: number, text: Promise<string> } | null = null
 
   constructor(token: string, private options: { region: CorosMcpRegion, endpoint?: string, reserveFitDownload?: () => Promise<void> }) {
     super(token)
@@ -236,12 +237,31 @@ export class CorosMcpDriver extends BaseDeviceCloudDriver {
   }
 
   async getDailyActivity(): Promise<DailyActivity[]> {
-    const text = corosMcpText(await this.mcp.call('queryDailyHealthData', { days: 30 }))
+    const text = await this.dailyText()
     return corosMcpDays(text).flatMap(({ day, text }) => {
       const steps = /Steps:\s*(\d+)/i.exec(text)
       const calories = /Calories:\s*([\d.]+)\s*kcal/i.exec(text)
       if (!steps && !calories) return []
       return [{ day, score: 0, steps: Number(steps?.[1] || 0), activeCalories: 0, totalCalories: Number(calories?.[1] || 0), contributors: {}, source: 'coros' as const }]
+    })
+  }
+
+  private dailyText(): Promise<string> {
+    if (!this.daily || Date.now() - this.daily.at > 60_000) {
+      const text = this.mcp.call('queryDailyHealthData', { days: 30 }).then(corosMcpText).catch((error) => {
+        this.daily = null
+        throw error
+      })
+      this.daily = { at: Date.now(), text }
+    }
+    return this.daily.text
+  }
+
+  /** Preserve the provider's calorie label without reclassifying it as active calories. */
+  async getDailyMetrics(): Promise<Array<{ Date: string, details: Array<{ label: string, value: number }> }>> {
+    return corosMcpDays(await this.dailyText()).flatMap(({ day, text }) => {
+      const calories = /Calories:\s*([\d.]+)\s*kcal/i.exec(text)
+      return calories ? [{ Date: day, details: [{ label: 'Calories (COROS, kcal)', value: Number(calories[1]) }] }] : []
     })
   }
 
