@@ -14,3 +14,4 @@ export type { CorosDriverOptions, CorosTrainingSchedule, CorosTrainingStep, Coro
 export { createWahooCloudDriver, WahooCloudDriver } from './drivers/wahoo'
 export type { WahooDriverOptions } from './drivers/wahoo'
 export * from './oauth'
+export * from './drivers/coros-mcp'

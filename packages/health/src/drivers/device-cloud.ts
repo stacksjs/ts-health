@@ -40,6 +40,8 @@ export const DEVICE_CLOUD_PROVIDERS: readonly DeviceCloudProvider[] = ['polar', 
 
 /** One recorded activity as the provider's list describes it. */
 export interface CloudActivity {
+  /** Numeric sport discriminator required by COROS MCP's detail/FIT tools. */
+  providerSportType?: number
   /** The provider's id: Polar's exercise id, Suunto's workoutKey, COROS' labelId, Wahoo's workout id. */
   id: string
   provider: DeviceCloudProvider
