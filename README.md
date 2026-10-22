@@ -26,6 +26,14 @@ A comprehensive TypeScript library for health, fitness, and smartwatch data. Uni
 - **Fitbit Aria** - Weight and body fat via the Fitbit driver
 - **Apple Health** - Weight, BMI, body fat %, lean body mass from synced scale data
 
+### Diabetes: CGMs, Pumps & Loops
+
+- **Dexcom** - Official API v3 (G6, G7, ONE, Stelo): glucose with trend arrows, logged carbs and insulin, OAuth helpers per region
+- **FreeStyle Libre** - Libre 2/3 glucose via LibreLinkUp (unofficial, follower account)
+- **Nightscout** - Glucose, boluses, temp basals, carbs, and pump/loop status (reservoir, battery, IOB, COB) from Loop, Trio, AndroidAPS, OpenAPS, xDrip+
+- **Tidepool** - Tandem, Omnipod, Medtronic uploads: boluses, automated/scheduled/suspended basal, bolus-calculator carbs
+- **Consensus metrics** - Time in range (five ranges), GMI, CV, coverage; glucose across a workout; type 1 pre-exercise bands; insulin totals
+
 ### Smartwatch & Device Support
 
 - **Garmin** - USB download, device detection, FIT file parsing, Garmin Connect API
@@ -135,6 +143,23 @@ for (const measurement of bodyComp) {
 // Renpho smart scales
 const renpho = createRenphoDriver({ email: 'you@example.com', password: 'your-password' })
 const weights = await renpho.getWeightMeasurements({ startDate: '2025-01-01' })
+```
+
+### Diabetes Data (Dexcom, Libre, Nightscout, Tidepool)
+
+```typescript
+import { createNightscoutDriver, exerciseGlucose, glucoseStats, preExerciseCheck } from 'ts-health/glucose'
+
+const ns = createNightscoutDriver({ url: 'https://my-site.example.com', token: 'readable-abc123' })
+const range = { start: '2026-10-20T00:00:00Z', end: '2026-10-21T00:00:00Z' }
+
+const readings = await ns.getGlucose(range) // mg/dL, trend arrows, CGM or meter
+const insulin = await ns.getInsulin(range) // boluses and basal segments, automatic or not
+const pump = await ns.getPumpStatus() // reservoir, battery, IOB, COB, loop mode
+
+const stats = glucoseStats(readings) // time in range, GMI, CV, coverage
+const run = exerciseGlucose(readings, '2026-10-20T07:00:00Z', '2026-10-20T08:00:00Z')
+const check = preExerciseCheck(112, 'fortyFiveDown') // { band: 'below_target', carbsGrams: 15, ... }
 ```
 
 ### Smartwatch Device Data (Garmin, Polar, Suunto, Coros, Wahoo)

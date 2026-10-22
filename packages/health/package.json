@@ -73,6 +73,10 @@
     "./eight-sleep": {
       "types": "./dist/src/eight-sleep/index.d.ts",
       "import": "./dist/src/eight-sleep/index.js"
+    },
+    "./glucose": {
+      "types": "./dist/src/glucose/index.d.ts",
+      "import": "./dist/src/glucose/index.js"
     }
   },
   "module": "./dist/src/index.js",

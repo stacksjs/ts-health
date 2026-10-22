@@ -8,6 +8,7 @@ const entrypoints = [
   'src/hydration.ts',
   'src/larq/index.ts',
   'src/eight-sleep/index.ts',
+  'src/glucose/index.ts',
   'src/analysis/index.ts',
   'bin/cli.ts',
 ]

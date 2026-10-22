@@ -5,6 +5,9 @@ export * from './types'
 // Health platform drivers (Oura, WHOOP, Apple Health, Fitbit, Withings, Renpho)
 export * from './drivers'
 
+// Diabetes: CGM glucose, pump and pen insulin, carbs, time in range
+export * from './glucose'
+
 // Health analysis tools (sleep, readiness, recovery, trends)
 export * from './analysis'
 
