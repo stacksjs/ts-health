@@ -1,5 +1,23 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.20...v0.1.21)
+
+## ✨ Features
+
+- **glucose**: merge readings, doses and carbs reported by two sources ([c49f095](https://github.com/stacksjs/ts-health/commit/c49f095)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 📝 Documentation
+
+- reference-style link for the glucose guide ([fb36c2f](https://github.com/stacksjs/ts-health/commit/fb36c2f)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.21 ([cc0b4a8](https://github.com/stacksjs/ts-health/commit/cc0b4a8)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.19...v0.1.20)
 
 ## ✨ Features
