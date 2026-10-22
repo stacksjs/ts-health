@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'bun:test'
 import { createHash } from 'node:crypto'
 import {
+  appleExportGlucoseSamples,
+  createAppleHealthGlucoseDriver,
   createDexcomDriver,
   createLibreLinkUpDriver,
   createNightscoutDriver,
@@ -8,6 +10,7 @@ import {
   dexcomAuthorizeUrl,
   exchangeDexcomCode,
   exerciseGlucose,
+  fromPhoneSamples,
   glucoseIn,
   glucoseStats,
   insulinTotals,
@@ -227,5 +230,55 @@ describe('Tidepool', () => {
     expect((await tidepool.getCarbs(range)).map(c => c.grams)).toEqual([35])
     expect(calls.filter(c => c.url.includes('/data/'))).toHaveLength(1)
     expect(calls[0]!.init!.headers).toEqual({ Authorization: `Basic ${Buffer.from('a@b.c:pw').toString('base64')}` })
+  })
+})
+
+describe('phone health samples', () => {
+  const at = (minute: number) => Date.parse('2026-10-21T08:00:00Z') + minute * 60_000
+  it('tells a CGM from a meter, basal from bolus, and leaves the app\'s own writes out', () => {
+    const { readings, doses, carbs } = fromPhoneSamples({
+      glucose: [
+        ...[0, 5, 10, 15].map(m => ({ id: `g${m}`, value: 6.1, unit: 'mmol<180.1558800000541>/L', startDate: at(m), endDate: at(m), sourceName: 'Dexcom G7', sourceBundleId: 'com.dexcom.g7' })),
+        { id: 'm1', value: 132, unit: 'mg/dL', startDate: at(20), endDate: at(20), sourceName: 'Contour', sourceBundleId: 'com.ascensia.contour' },
+      ],
+      insulin: [
+        { id: 'b1', value: 0.6, unit: 'IU', startDate: at(0), endDate: at(30), sourceName: 'Loop', sourceBundleId: 'com.loopkit.Loop', insulinReason: 'basal' },
+        { id: 'b2', value: 4.25, unit: 'IU', startDate: at(5), endDate: at(5), sourceName: 'Loop', insulinReason: 'bolus' },
+        { id: 'b3', value: 18, unit: 'IU', startDate: at(6), endDate: at(6), sourceName: 'InPen', insulinReason: 'basal' },
+      ],
+      carbs: [
+        { id: 'c1', value: 45, unit: 'g', startDate: at(5), endDate: at(5), sourceName: 'Loop' },
+        { id: 'c2', value: 30, unit: 'g', startDate: at(6), endDate: at(6), sourceName: 'HQ', ownApp: true },
+      ],
+    }, 'apple_health')
+    expect(readings.map(r => [r.id, r.mgdl, r.kind])).toEqual([['g0', 110, 'cgm'], ['g5', 110, 'cgm'], ['g10', 110, 'cgm'], ['g15', 110, 'cgm'], ['m1', 132, 'meter']])
+    expect(doses.map(d => [d.id, d.kind, d.subtype, d.automatic, d.rateUnitsPerHour])).toEqual([
+      ['b1', 'basal', 'temp', true, 1.2],
+      ['b2', 'bolus', undefined, false, undefined],
+      ['b3', 'basal', 'long_acting', false, undefined],
+    ])
+    expect(carbs.map(c => c.id)).toEqual(['c1'])
+    expect(readings[0]!.source).toBe('apple_health')
+  })
+
+  it('reads glucose, insulin with its reason and carbs from an Apple Health export', async () => {
+    const xml = `<HealthData>
+      <Record type="HKQuantityTypeIdentifierBloodGlucose" sourceName="Dexcom G7" unit="mg/dL" startDate="2026-10-21 01:00:00 -0700" endDate="2026-10-21 01:00:00 -0700" value="140"/>
+      <Record type="HKQuantityTypeIdentifierBloodGlucose" sourceName="Dexcom G7" unit="mg/dL" startDate="2026-10-21 01:05:00 -0700" endDate="2026-10-21 01:05:00 -0700" value="138"/>
+      <Record type="HKQuantityTypeIdentifierBloodGlucose" sourceName="Dexcom G7" unit="mg/dL" startDate="2026-10-21 01:10:00 -0700" endDate="2026-10-21 01:10:00 -0700" value="135"/>
+      <Record type="HKQuantityTypeIdentifierInsulinDelivery" sourceName="Loop" unit="IU" startDate="2026-10-21 01:00:00 -0700" endDate="2026-10-21 01:00:00 -0700" value="3.5">
+        <MetadataEntry key="HKInsulinDeliveryReason" value="2"/>
+      </Record>
+      <Record type="HKQuantityTypeIdentifierDietaryCarbohydrates" sourceName="Loop" unit="g" startDate="2026-10-21 01:00:00 -0700" endDate="2026-10-21 01:00:00 -0700" value="40"/>
+      <Record type="HKQuantityTypeIdentifierHeartRate" sourceName="Watch" unit="count/min" startDate="2026-10-21 01:00:00 -0700" endDate="2026-10-21 01:00:00 -0700" value="60"/>
+    </HealthData>`
+    const driver = createAppleHealthGlucoseDriver({ xml })
+    const glucose = await driver.getGlucose(range)
+    expect(glucose.map(r => [r.mgdl, r.kind, r.timestamp])).toEqual([[140, 'cgm', '2026-10-21T08:00:00.000Z'], [138, 'cgm', '2026-10-21T08:05:00.000Z'], [135, 'cgm', '2026-10-21T08:10:00.000Z']])
+    expect((await driver.getInsulin(range)).map(d => [d.kind, d.units])).toEqual([['bolus', 3.5]])
+    expect((await driver.getCarbs(range)).map(c => c.grams)).toEqual([40])
+    // The same record in a later export keeps its id.
+    expect(appleExportGlucoseSamples(xml).glucose[0]!.id).toBe(appleExportGlucoseSamples(xml).glucose[0]!.id)
+    expect(glucose[0]!.id).toMatch(/^[a-f0-9]{32}$/)
   })
 })

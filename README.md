@@ -32,6 +32,7 @@ A comprehensive TypeScript library for health, fitness, and smartwatch data. Uni
 - **FreeStyle Libre** - Libre 2/3 glucose via LibreLinkUp (unofficial, follower account)
 - **Nightscout** - Glucose, boluses, temp basals, carbs, and pump/loop status (reservoir, battery, IOB, COB) from Loop, Trio, AndroidAPS, OpenAPS, xDrip+
 - **Tidepool** - Tandem, Omnipod, Medtronic uploads: boluses, automated/scheduled/suspended basal, bolus-calculator carbs
+- **Apple Health & Health Connect** - Glucose, insulin (basal/bolus) and carbs that CGM, pump and loop apps write to the phone, via `fromPhoneSamples`; an Apple Health export via `createAppleHealthGlucoseDriver`
 - **Consensus metrics** - Time in range (five ranges), GMI, CV, coverage; glucose across a workout; type 1 pre-exercise bands; insulin totals
 
 ### Smartwatch & Device Support
@@ -161,6 +162,16 @@ const stats = glucoseStats(readings) // time in range, GMI, CV, coverage
 const run = exerciseGlucose(readings, '2026-10-20T07:00:00Z', '2026-10-20T08:00:00Z')
 const check = preExerciseCheck(112, 'fortyFiveDown') // { band: 'below_target', carbsGrams: 15, ... }
 ```
+
+Samples from the phone's health store (for example Craft's `health.getSamples()`) normalize the same way:
+
+```typescript
+import { fromPhoneSamples } from 'ts-health/glucose'
+
+const { readings, doses, carbs } = fromPhoneSamples({ glucose, insulin, carbs: meals }, 'apple_health')
+```
+
+See the [Diabetes & Glucose guide](https://ts-health.netlify.app/glucose) for every source.
 
 ### Smartwatch Device Data (Garmin, Polar, Suunto, Coros, Wahoo)
 

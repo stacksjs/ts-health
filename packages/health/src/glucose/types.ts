@@ -6,7 +6,7 @@
  * directly.
  */
 
-export type GlucoseSourceType = 'nightscout' | 'dexcom' | 'libre' | 'tidepool' | 'apple_health' | 'manual'
+export type GlucoseSourceType = 'nightscout' | 'dexcom' | 'libre' | 'tidepool' | 'apple_health' | 'health_connect' | 'manual'
 
 export type GlucoseTrend =
   | 'doubleUp'

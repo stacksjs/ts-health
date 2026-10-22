@@ -27,6 +27,7 @@ export default {
           { text: 'WHOOP', link: '/features/whoop' },
           { text: 'Eight Sleep', link: '/eight-sleep' },
           { text: 'Apple Health', link: '/features/apple-health' },
+          { text: 'Diabetes & Glucose', link: '/glucose' },
           { text: 'Fitbit', link: '/features/fitbit' },
           { text: 'Smart Scales', link: '/features/smart-scales' },
           { text: 'Garmin Devices', link: '/features/garmin' },

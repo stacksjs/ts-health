@@ -170,6 +170,22 @@ const profile = await apple.getPersonalInfo()
 console.log(`Height: ${profile?.height}cm, Weight: ${profile?.weight}kg`)
 ```
 
+## Glucose, Insulin and Carbs
+
+Blood glucose, insulin delivery (with HealthKit's basal or bolus reason) and
+carbs from the same export come through a glucose driver of their own, in the
+shape every diabetes source in `ts-health/glucose` shares:
+
+```ts
+import { createAppleHealthGlucoseDriver } from 'ts-health/glucose'
+
+const diabetes = createAppleHealthGlucoseDriver('./export.xml')
+const readings = await diabetes.getGlucose({ start: '2026-10-01T00:00:00Z', end: '2026-10-21T00:00:00Z' })
+const doses = await diabetes.getInsulin({ start: '2026-10-01T00:00:00Z', end: '2026-10-21T00:00:00Z' })
+```
+
+See [Diabetes & Glucose](/glucose) for live phone samples and the other sources.
+
 ## Apple Health-Specific Notes
 
 - **Readiness**: Apple Health does not have a readiness score. Use the analysis modules with sleep and HRV data to calculate your own.
