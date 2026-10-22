@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.19...v0.1.20)
+
+## ✨ Features
+
+- **glucose**: phone health samples and Apple Health exports ([9842b35](https://github.com/stacksjs/ts-health/commit/9842b35)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.20 ([7c064c1](https://github.com/stacksjs/ts-health/commit/7c064c1)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.18...v0.1.19)
 
 ## ✨ Features
