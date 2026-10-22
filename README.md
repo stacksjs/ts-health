@@ -171,7 +171,7 @@ import { fromPhoneSamples } from 'ts-health/glucose'
 const { readings, doses, carbs } = fromPhoneSamples({ glucose, insulin, carbs: meals }, 'apple_health')
 ```
 
-See the [Diabetes & Glucose guide](https://ts-health.netlify.app/glucose) for every source.
+See the [Diabetes & Glucose guide][glucose-guide] for every source.
 
 ### Smartwatch Device Data (Garmin, Polar, Suunto, Coros, Wahoo)
 
@@ -771,3 +771,5 @@ Protocol references: [OpenLARQ](https://github.com/lavyyy/openlarq),
 ## Eight Sleep Pod integration
 
 Use `createEightSleepDriver` from `ts-health/eight-sleep` for sleep reports, stages, HR/HRV, respiratory trends, bed/room temperatures and capability-aware Pod controls. Temperature, smart-schedule levels, alarms, base presets/angles, supported pillow/audio controls, LED brightness and priming are supported through the unofficial cloud API. No Apple Health dependency. Proprietary Eight Sleep algorithms and setup remain in the manufacturer app. See [the complete feature coverage and setup guide](docs/eight-sleep.md).
+
+[glucose-guide]: https://ts-health.netlify.app/glucose
