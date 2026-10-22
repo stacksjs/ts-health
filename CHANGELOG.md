@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.18...v0.1.19)
+
+## ✨ Features
+
+- **glucose**: Dexcom, LibreLinkUp, Nightscout and Tidepool drivers with consensus CGM metrics ([eefaa0e](https://github.com/stacksjs/ts-health/commit/eefaa0e)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.19 ([c5f74e5](https://github.com/stacksjs/ts-health/commit/c5f74e5)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.17...v0.1.18)
 
 ## 🐛 Bug Fixes
