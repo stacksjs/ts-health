@@ -67,6 +67,25 @@ const readings = await exported.getGlucose({ start: '2026-01-01T00:00:00Z', end:
 An export has no sample UUIDs, so each id is a hash of the record's type,
 source, times and value: the same record in a later export keeps its id.
 
+## Merging sources
+
+The same sensor or pump often arrives twice: Dexcom's API and the Dexcom app's
+writes to Apple Health, or Loop's Nightscout uploads and its Apple Health
+writes. Merge before computing anything, or insulin totals double and time in
+range skews:
+
+```ts
+import { mergeCarbEntries, mergeGlucoseReadings, mergeInsulinDoses } from 'ts-health/glucose'
+
+const series = mergeGlucoseReadings([...fromDexcom, ...fromAppleHealth]) // one CGM reading per 2.5 minutes, fingersticks all kept
+const doses = mergeInsulinDoses([...fromNightscout, ...fromAppleHealth]) // a bolus of the same size within 2 minutes is one dose
+const meals = mergeCarbEntries([...fromNightscout, ...fromAppleHealth]) // the same grams within 5 minutes is one meal
+```
+
+The most direct source wins (`GLUCOSE_SOURCE_PRIORITY`: Dexcom, Libre,
+Nightscout, Tidepool, Apple Health, Health Connect, then hand entry), and a
+less direct one still fills the gaps the first left.
+
 ## Metrics
 
 ```ts

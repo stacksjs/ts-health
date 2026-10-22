@@ -171,6 +171,8 @@ import { fromPhoneSamples } from 'ts-health/glucose'
 const { readings, doses, carbs } = fromPhoneSamples({ glucose, insulin, carbs: meals }, 'apple_health')
 ```
 
+When the same sensor arrives from two sources (Dexcom's API and Apple Health), `mergeGlucoseReadings`, `mergeInsulinDoses` and `mergeCarbEntries` keep one copy, the most direct source winning.
+
 See the [Diabetes & Glucose guide][glucose-guide] for every source.
 
 ### Smartwatch Device Data (Garmin, Polar, Suunto, Coros, Wahoo)

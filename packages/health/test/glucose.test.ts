@@ -15,6 +15,9 @@ import {
   glucoseStats,
   insulinTotals,
   libreTimestamp,
+  mergeCarbEntries,
+  mergeGlucoseReadings,
+  mergeInsulinDoses,
   normalizeTrend,
   preExerciseCheck,
 } from '../src/glucose'
@@ -280,5 +283,27 @@ describe('phone health samples', () => {
     // The same record in a later export keeps its id.
     expect(appleExportGlucoseSamples(xml).glucose[0]!.id).toBe(appleExportGlucoseSamples(xml).glucose[0]!.id)
     expect(glucose[0]!.id).toMatch(/^[a-f0-9]{32}$/)
+  })
+})
+
+describe('merging sources', () => {
+  const t = (minute: number, seconds = 0) => new Date(Date.parse('2026-10-21T08:00:00Z') + minute * 60_000 + seconds * 1000).toISOString()
+  const reading = (id: string, source: any, minute: number, seconds = 0, kind: 'cgm' | 'meter' = 'cgm'): any => ({ id, timestamp: t(minute, seconds), mgdl: 120, trend: 'flat', kind, source })
+
+  it('keeps one CGM series, the most direct source winning, and every fingerstick', () => {
+    const merged = mergeGlucoseReadings([
+      reading('a0', 'apple_health', 0, 40), reading('a5', 'apple_health', 5, 40), reading('a10', 'apple_health', 10, 40), reading('a20', 'apple_health', 20),
+      reading('d0', 'dexcom', 0), reading('d5', 'dexcom', 5), reading('d10', 'dexcom', 10),
+      reading('m1', 'manual', 5, 30, 'meter'),
+    ])
+    // Apple Health fills the gap Dexcom left at 20 minutes.
+    expect(merged.map(r => r.id)).toEqual(['d0', 'd5', 'm1', 'd10', 'a20'])
+  })
+
+  it('counts a dose or a meal once when two sources report it', () => {
+    const dose = (id: string, source: any, minute: number, units: number, kind: 'bolus' | 'basal' = 'bolus'): any => ({ id, timestamp: t(minute), units, kind, automatic: false, source })
+    expect(mergeInsulinDoses([dose('h1', 'apple_health', 0, 4.2), dose('n1', 'nightscout', 1, 4.2), dose('n2', 'nightscout', 30, 1), dose('h2', 'apple_health', 31, 2)]).map(d => d.id)).toEqual(['n1', 'n2', 'h2'])
+    const meal = (id: string, source: any, minute: number, grams: number): any => ({ id, timestamp: t(minute), grams, source })
+    expect(mergeCarbEntries([meal('h', 'apple_health', 2, 45), meal('n', 'nightscout', 0, 45), meal('x', 'apple_health', 60, 45)]).map(c => c.id)).toEqual(['n', 'x'])
   })
 })
