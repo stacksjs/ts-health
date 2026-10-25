@@ -1162,7 +1162,7 @@ addCommonOptions(cli.command('trends', 'Analyze trends across health metrics'))
           })
           metricsData.push({
             name: 'Active Calories',
-            dataPoints: activity.map(a => ({ day: a.day, value: a.activeCalories })),
+            dataPoints: activity.filter(a => a.activeCalories != null).map(a => ({ day: a.day, value: a.activeCalories! })),
           })
         }
       }
@@ -1416,9 +1416,13 @@ cli
         const steps2 = activity2.reduce((s, x) => s + (x.steps ?? 0), 0) / activity2.length
         comparison['Daily Steps'] = { period1: Math.round(steps1), period2: Math.round(steps2), change: Math.round(steps2 - steps1), unit: '' }
 
-        const cal1 = activity1.reduce((s, x) => s + x.activeCalories, 0) / activity1.length
-        const cal2 = activity2.reduce((s, x) => s + x.activeCalories, 0) / activity2.length
-        comparison['Active Calories'] = { period1: Math.round(cal1), period2: Math.round(cal2), change: Math.round(cal2 - cal1), unit: 'cal' }
+        const calories1 = activity1.flatMap(x => x.activeCalories == null ? [] : [x.activeCalories])
+        const calories2 = activity2.flatMap(x => x.activeCalories == null ? [] : [x.activeCalories])
+        if (calories1.length && calories2.length) {
+          const cal1 = calories1.reduce((sum, value) => sum + value, 0) / calories1.length
+          const cal2 = calories2.reduce((sum, value) => sum + value, 0) / calories2.length
+          comparison['Active Calories'] = { period1: Math.round(cal1), period2: Math.round(cal2), change: Math.round(cal2 - cal1), unit: 'cal' }
+        }
       }
 
       if (hrv1.length > 0 && hrv2.length > 0) {

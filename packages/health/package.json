@@ -116,7 +116,7 @@
     "test": "bun test"
   },
   "dependencies": {
-    "ts-watches": "^0.1.7"
+    "ts-watches": "^0.1.8"
   },
   "devDependencies": {
     "@stacksjs/clapp": "^0.2.0",

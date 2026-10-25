@@ -87,7 +87,7 @@ export class GarminHealthDriver implements HealthDriver {
     for (const result of results) {
       if (result.status !== 'fulfilled' || !result.value?.data) continue
       const { date, data } = result.value
-      days.push({ day: date.toISOString().slice(0, 10), score: 0, activeCalories: data.calories, totalCalories: data.calories,
+      days.push({ day: date.toISOString().slice(0, 10), score: 0,
         steps: data.total, equivalentWalkingDistance: data.distance, contributors: {}, source: 'garmin' })
     }
     return this.complete(days, results)

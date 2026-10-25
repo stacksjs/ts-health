@@ -107,3 +107,12 @@ test('Fitbit follows owner-scoped pagination, understands ISO starts and keeps d
   await expect(new FitbitDriver('owner-token').getWorkouts()).rejects.toThrow('own-account')
   expect(reads).toBe(1)
 })
+
+test('Garmin daily activity preserves measured distance and zero steps without inventing calories', async () => {
+  globalThis.fetch = (async () => Response.json([{ calendarDate: '2026-10-24', totalSteps: 0, stepGoal: 15260, totalDistance: 0 }])) as unknown as typeof fetch
+  const rows = await garmin().getDailyActivity({ startDate: '2026-10-24', endDate: '2026-10-24' })
+  expect(rows).toHaveLength(1)
+  expect(rows[0]).toMatchObject({ steps: 0, equivalentWalkingDistance: 0 })
+  expect(rows[0]?.activeCalories).toBeUndefined()
+  expect(rows[0]?.totalCalories).toBeUndefined()
+})

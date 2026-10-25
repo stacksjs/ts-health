@@ -207,8 +207,8 @@ export interface DailyActivity {
   kilojoules?: number
   averageHeartRate?: number
   maxHeartRate?: number
-  activeCalories: number
-  totalCalories: number
+  activeCalories?: number
+  totalCalories?: number
   steps?: number
   equivalentWalkingDistance?: number
   highActivityTime?: number
