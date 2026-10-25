@@ -20,7 +20,7 @@ test('Garmin retains all weigh-ins, converts grams to kg and preserves a genuine
   ] })) as unknown as typeof fetch
   const rows = await garmin().getBodyComposition({ startDate: '2026-10-24', endDate: '2026-10-24' })
   expect(rows).toHaveLength(2)
-  expect(rows[0]).toMatchObject({ weight: 73, bodyFatPercentage: 0, boneMass: 3, timestamp: '2026-10-24T08:00:00.000Z' })
+  expect(rows[0]).toMatchObject({ weight: 73, bodyFatPercentage: 0, boneMass: 3, details: { boneMass: 3000 }, timestamp: '2026-10-24T08:00:00.000Z' })
   expect(rows[1]).toMatchObject({ weight: 73.5, muscleMass: 32 })
 })
 test('a failed Garmin day retains the successful readings and remains a failure', async () => {

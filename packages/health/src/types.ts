@@ -201,6 +201,7 @@ export interface SleepContributors {
 // ============================================================================
 
 export interface DailyActivity {
+  details?: unknown
   day: string
   score: number
   strain?: number
@@ -334,6 +335,7 @@ export interface DailySpO2 {
 // ============================================================================
 
 export interface DailyStress {
+  details?: unknown
   day: string
   /** Recorded high-stress / restorative durations, in seconds. */
   stressHigh?: number
@@ -379,6 +381,7 @@ export interface VO2MaxReading {
 // ============================================================================
 
 export interface BodyComposition {
+  details?: unknown
   id: string
   day: string
   timestamp: string
@@ -873,6 +876,7 @@ export interface HydrationSample {
 }
 
 export interface DailyHydration {
+  details?: unknown
   day: string
   volumeMl: number
   samples: number

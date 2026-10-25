@@ -18,7 +18,7 @@
         "health": "./dist/bin/cli.js",
       },
       "dependencies": {
-        "ts-watches": "^0.1.8",
+        "ts-watches": "^0.1.9",
       },
       "devDependencies": {
         "@stacksjs/clapp": "^0.2.0",
@@ -288,7 +288,7 @@
 
     "ts-error-handling": ["ts-error-handling@0.1.1", "", {}, "sha512-d4VqdX0bJ+jvOYNsY58isJgrEr806Q9cjef5+1UO/kIn1M/+YYSwpR6fqdRhn9XXVASJLSzNmcnBSdl0fRCjDg=="],
 
-    "ts-garmin": ["ts-garmin@0.1.8", "", {}, "sha512-KmQPS7va/VnyqkAZbbDcRyGYfRT9voJE1Cqi+XFT9qbj5TX5TWWJmlov5CSlgkq7STRISWmFl8GS1S6qxTlyag=="],
+    "ts-garmin": ["ts-garmin@0.1.9", "", {}, "sha512-0f1qslS3W5PNbc3J2X4eGa8iJSqjz2lf3BOpkOp/51kbYsw3uGg9g0LDV9tfFneUpbFzQL4qU4IEE2+PiLtzcA=="],
 
     "ts-gif": ["ts-gif@0.1.2", "", { "dependencies": { "data-uri-to-buffer": "^6.0.2" } }, "sha512-jbraplO1qqJtrtkFeepNPUGPad7w8FQHWIQFsn1OJbHeWKUbdqdkrX18XzNXI5Fw7+s6A3nbNTdj+Ukn4d3f8g=="],
 
@@ -302,9 +302,9 @@
 
     "ts-syntax-highlighter": ["ts-syntax-highlighter@0.2.1", "", { "bin": { "ts-syntax-highlighter": "dist/bin/cli.js" } }, "sha512-HEfxaVKifwvnX0NaOE8nfs4VFdZo6WdREj1KRehelfYsO1N+m9vOIj5exhlOqFpxOPWd4BlalU8y0WWS7yPWjw=="],
 
-    "ts-trainingpeaks": ["ts-trainingpeaks@0.1.8", "", {}, "sha512-aL4YXQIBl/bkHt3QrTHtC09osnPRyLEq2rgCOj+kh8iTkv5sAiaqdIefXXEQllQ+1by6Gc5iHrkGK48moZaGDg=="],
+    "ts-trainingpeaks": ["ts-trainingpeaks@0.1.9", "", {}, "sha512-qggZZzIvP/Oo/eAkbx6dnwpBVq6P/8fLw5iLnvYrLEAZVtWta6yuUmWl6Zt3Rlzs+sWX9posCj1HZOk24AUCqQ=="],
 
-    "ts-watches": ["ts-watches@0.1.8", "", { "dependencies": { "ts-garmin": "0.1.8", "ts-trainingpeaks": "0.1.8" }, "bin": { "watch": "./dist/bin/cli.js" } }, "sha512-IbOydHN6B+yASp1Jy2pZG5j05SKYZfdYzXaa/xQL7yV4ZHS3Bz8pqbp6wyT0S4bDNbfLnpJjo0boqL00YCcfPA=="],
+    "ts-watches": ["ts-watches@0.1.9", "", { "dependencies": { "ts-garmin": "0.1.9", "ts-trainingpeaks": "0.1.9" }, "bin": { "watch": "./dist/bin/cli.js" } }, "sha512-gWMBdytiBFjWqRLV8o77tE5Id3uoDG4+wLxUlMTSGIZ8yc7oHNtlo9/fxhSsIHXUsZtFaFV0bXnt8t54b1Zuqg=="],
 
     "ts-web-scraper": ["ts-web-scraper@0.1.1", "", { "bin": { "scraper": "dist/bin/cli.js" } }, "sha512-js+gSRe95yDD9U3+GmjvIKBYLAN9WoZKV84x7HcSI7dqdWEIoZSeSGR/Jbr8f5hCeV9FD70KdTPIS2LQwviQXQ=="],
 

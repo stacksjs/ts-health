@@ -68,7 +68,7 @@ export class GarminHealthDriver implements HealthDriver {
     for (const result of results) {
       if (result.status !== 'fulfilled' || !result.value) continue
       const s = result.value
-      sessions.push({ id: `garmin_sleep_${s.date.toISOString().slice(0, 10)}`, day: s.date.toISOString().slice(0, 10),
+      sessions.push({ details: s.details && typeof s.details === 'object' && !Array.isArray(s.details) ? s.details as Record<string, unknown> : undefined, id: `garmin_sleep_${s.date.toISOString().slice(0, 10)}`, day: s.date.toISOString().slice(0, 10),
         bedtimeStart: s.startTime.toISOString(), bedtimeEnd: s.endTime.toISOString(), type: 'long_sleep',
         totalSleepDuration: s.totalSleepTime * 60, deepSleepDuration: s.deepSleepTime * 60, lightSleepDuration: s.lightSleepTime * 60,
         remSleepDuration: s.remSleepTime * 60, awakeTime: s.awakeTime * 60, timeInBed: (s.totalSleepTime + s.awakeTime) * 60,
@@ -87,7 +87,7 @@ export class GarminHealthDriver implements HealthDriver {
     for (const result of results) {
       if (result.status !== 'fulfilled' || !result.value?.data) continue
       const { date, data } = result.value
-      days.push({ day: date.toISOString().slice(0, 10), score: 0,
+      days.push({ day: date.toISOString().slice(0, 10), score: 0, details: data,
         steps: data.total, equivalentWalkingDistance: data.distance, contributors: {}, source: 'garmin' })
     }
     return this.complete(days, results)
@@ -144,7 +144,7 @@ export class GarminHealthDriver implements HealthDriver {
       if (result.status !== 'fulfilled' || !result.value) continue
       const s = result.value
       days.push({ day: s.date.toISOString().slice(0, 10), stressHigh: s.highStressDuration * 60, recoveryHigh: s.restStressDuration * 60,
-        score: s.avgStressLevel, maxScore: s.maxStressLevel, samples: s.samples.map(sample => ({ timestamp: sample.timestamp.toISOString(), score: sample.stressLevel })), source: 'garmin' })
+        details: s.details, score: s.avgStressLevel, maxScore: s.maxStressLevel, samples: s.samples.map(sample => ({ timestamp: sample.timestamp.toISOString(), score: sample.stressLevel })), source: 'garmin' })
     }
     return this.complete(days, results)
   }
@@ -157,7 +157,7 @@ export class GarminHealthDriver implements HealthDriver {
         day: row.date.toISOString().slice(0, 10), timestamp: row.timestamp?.toISOString() || row.date.toISOString(), weight: row.weight / 1000,
         bmi: row.bmi, bodyFatPercentage: row.bodyFatPercentage, waterPercentage: row.bodyWater,
         boneMass: row.boneMass == null ? undefined : row.boneMass / 1000, muscleMass: row.muscleMass == null ? undefined : row.muscleMass / 1000,
-        visceralFat: row.visceralFat, metabolicAge: row.metabolicAge, source: 'garmin' })
+        visceralFat: row.visceralFat, metabolicAge: row.metabolicAge, details: row.details, source: 'garmin' })
     }
     return this.complete(readings, results)
   }
@@ -169,7 +169,7 @@ export class GarminHealthDriver implements HealthDriver {
       if (result.status !== 'fulfilled' || !result.value) continue
       const { date, data } = result.value
       const row = data as { valueInML?: number }
-      if (finite(row?.valueInML) && row.valueInML >= 0) days.push({ day: date.toISOString().slice(0, 10), volumeMl: row.valueInML, samples: 0, source: 'garmin' })
+      if (finite(row?.valueInML) && row.valueInML >= 0) days.push({ day: date.toISOString().slice(0, 10), volumeMl: row.valueInML, samples: 0, details: data, source: 'garmin' })
     }
     return this.complete(days, results)
   }
