@@ -36,6 +36,16 @@ test('a failed Garmin day retains the successful readings and remains a failure'
     expect((error as PartialHealthReadError).readings).toMatchObject([{ hrv: 55 }])
   }
 })
+test('Garmin HRV history crosses no-content days without losing measured nights or inventing readings', async () => {
+  globalThis.fetch = (async (url: any) => String(url).includes('2026-10-24')
+    ? Response.json({ hrvSummary: { lastNightAvg: 55 }, hrvReadings: [] })
+    : new Response(null, { status: 204, headers: { 'content-type': 'application/json' } })) as typeof fetch
+  const driver = garmin()
+  expect(await driver.getHRV({ startDate: '2026-10-21', endDate: '2026-10-24' })).toEqual([
+    { timestamp: '2026-10-24T12:00:00.000Z', hrv: 55 },
+  ])
+  expect(await driver.getHRV({ startDate: '2026-10-14', endDate: '2026-10-20' })).toEqual([])
+})
 test('Garmin VO2 keeps running and cycling distinct, and hydration keeps original ml', async () => {
   globalThis.fetch = (async (url: any) => Response.json(String(url).includes('maxmet')
     ? [{ generic: { calendarDate: '2026-10-24', vo2MaxPreciseValue: 55.4 }, cycling: { calendarDate: '2026-10-24', vo2MaxValue: 59 } }]
