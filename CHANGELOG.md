@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.24...v0.1.25)
+
+## 🐛 Bug Fixes
+
+- carry no-content Garmin HRV days through history reads ([a3647fa](https://github.com/stacksjs/ts-health/commit/a3647fa)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.25 ([ccf3569](https://github.com/stacksjs/ts-health/commit/ccf3569)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.23...v0.1.24)
 
 ## 🐛 Bug Fixes
