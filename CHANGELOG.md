@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.23...v0.1.24)
+
+## 🐛 Bug Fixes
+
+- retain original Garmin wellness observations for private archives ([96e0485](https://github.com/stacksjs/ts-health/commit/96e0485)) _(by Chris Breuer <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.24 ([818c582](https://github.com/stacksjs/ts-health/commit/818c582)) _(by Chris Breuer <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris Breuer <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.22...v0.1.23)
 
 ## 🐛 Bug Fixes
