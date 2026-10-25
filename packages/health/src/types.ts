@@ -90,6 +90,7 @@ export type HealthMetric =
   | 'personalInfo'
   | 'hydration'
   | 'dailyHydration'
+  | 'bodyBattery'
 
 export interface HealthDriver {
   readonly name: string
@@ -113,6 +114,7 @@ export interface HealthDriver {
   getWeightMeasurements(options?: DateRangeOptions): Promise<WeightMeasurement[]>
   getHydration?(options?: DateRangeOptions): Promise<HydrationSample[]>
   getDailyHydration?(options?: DateRangeOptions): Promise<DailyHydration[]>
+  getBodyBattery?(options?: DateRangeOptions): Promise<BodyBatteryReading[]>
   getPersonalInfo(): Promise<PersonalInfo | null>
 }
 
@@ -155,7 +157,7 @@ export interface SleepSession {
   remSleepDuration: number
   awakeTime: number
   timeInBed: number
-  latency: number
+  latency?: number
   efficiency: number
   /** The provider's own sleep score (0-100), where it computes one (Polar, Suunto). */
   score?: number
@@ -171,6 +173,9 @@ export interface SleepSession {
   stages: SleepStage[]
   readinessScore?: number
   source: HealthPlatformType
+  /** Scores are still being processed; zero placeholders are not measurements. */
+  processing?: boolean
+  details?: Record<string, unknown>
 }
 
 export interface DailySleepSummary {
@@ -198,6 +203,10 @@ export interface SleepContributors {
 export interface DailyActivity {
   day: string
   score: number
+  strain?: number
+  kilojoules?: number
+  averageHeartRate?: number
+  maxHeartRate?: number
   activeCalories: number
   totalCalories: number
   steps?: number
@@ -240,6 +249,7 @@ export interface Workout {
   averageHeartRate?: number
   maxHeartRate?: number
   source: HealthPlatformType
+  details?: Record<string, unknown>
 }
 
 // ============================================================================
@@ -254,6 +264,8 @@ export interface DailyReadiness {
   contributors: ReadinessContributors
   timestamp?: string
   source: HealthPlatformType
+  id?: string
+  details?: Record<string, unknown>
 }
 
 export interface ReadinessContributors {
@@ -273,6 +285,8 @@ export interface ReadinessContributors {
 
 export interface HeartRateSample {
   timestamp: string
+  /** Provider calendar day for a daily aggregate, distinct from a measured instant. */
+  day?: string
   bpm: number
   source?: string
 }
@@ -321,8 +335,16 @@ export interface DailySpO2 {
 
 export interface DailyStress {
   day: string
+  /** Recorded high-stress / restorative durations, in seconds. */
   stressHigh?: number
   recoveryHigh?: number
+  /** WHOOP's 0–21 physical strain, not a duration or a 0–100 stress score. */
+  strain?: number
+  /** A provider's own stress score; scales remain source-specific. */
+  score?: number
+  fatigue?: number
+  maxScore?: number
+  samples?: Array<{ timestamp: string, score: number }>
   daySummary?: 'restored' | 'normal' | 'strained'
   source: HealthPlatformType
 }
@@ -333,6 +355,8 @@ export interface DailyStress {
 
 export interface BodyTemperature {
   day: string
+  /** Absolute skin temperature, when measured rather than a baseline deviation. */
+  celsius?: number
   deviation?: number
   trendDeviation?: number
   source: HealthPlatformType
@@ -344,7 +368,9 @@ export interface BodyTemperature {
 
 export interface VO2MaxReading {
   day: string
-  vo2Max: number
+  vo2Max?: number
+  activity?: 'running' | 'cycling'
+  range?: { min: number, max: number }
   source: HealthPlatformType
 }
 
@@ -626,7 +652,7 @@ export interface WhoopCycle {
 
 export interface WhoopRecovery {
   cycle_id: number
-  sleep_id: number
+  sleep_id: number | string
   user_id: number
   created_at: string
   updated_at: string
@@ -642,7 +668,8 @@ export interface WhoopRecovery {
 }
 
 export interface WhoopSleep {
-  id: number
+  id: number | string
+  activity_v1_id?: number
   user_id: number
   created_at: string
   updated_at: string
@@ -676,7 +703,8 @@ export interface WhoopSleep {
 }
 
 export interface WhoopWorkout {
-  id: number
+  id: number | string
+  activity_v1_id?: number
   user_id: number
   created_at: string
   updated_at: string
@@ -783,7 +811,7 @@ export interface SleepQualityScore {
   efficiencyScore: number
   deepSleepScore: number
   remSleepScore: number
-  latencyScore: number
+  latencyScore?: number
   consistencyScore: number
   rating: 'excellent' | 'good' | 'fair' | 'poor'
 }
@@ -848,6 +876,16 @@ export interface DailyHydration {
   day: string
   volumeMl: number
   samples: number
+  source: HealthPlatformType
+}
+
+export interface BodyBatteryReading {
+  day: string
+  startLevel?: number
+  endLevel?: number
+  charged?: number
+  drained?: number
+  samples: Array<{ timestamp: string, level: number }>
   source: HealthPlatformType
 }
 

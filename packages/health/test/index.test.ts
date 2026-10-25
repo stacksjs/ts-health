@@ -578,26 +578,24 @@ describe('GarminHealthDriver', () => {
     expect(driver.supportedMetrics.has('personalInfo')).toBe(true)
   })
 
-  it('does not support readiness, spo2, bodyTemp, vo2Max, or body composition', () => {
+  it('reports the exposed training, body composition, hydration and battery families', () => {
     if (!available) return
     const driver = new GarminHealthDriver({ username: 'test', password: 'test' })
-    expect(driver.supportedMetrics.has('readiness')).toBe(false)
+    expect(driver.supportedMetrics.has('readiness')).toBe(true)
     expect(driver.supportedMetrics.has('spo2')).toBe(false)
     expect(driver.supportedMetrics.has('bodyTemperature')).toBe(false)
-    expect(driver.supportedMetrics.has('vo2Max')).toBe(false)
-    expect(driver.supportedMetrics.has('bodyComposition')).toBe(false)
-    expect(driver.supportedMetrics.has('weightMeasurements')).toBe(false)
+    expect(driver.supportedMetrics.has('vo2Max')).toBe(true)
+    expect(driver.supportedMetrics.has('bodyComposition')).toBe(true)
+    expect(driver.supportedMetrics.has('weightMeasurements')).toBe(true)
+    expect(driver.supportedMetrics.has('bodyBattery')).toBe(true)
+    expect(driver.supportedMetrics.has('dailyHydration')).toBe(true)
   })
 
   it('unsupported methods return empty arrays', async () => {
     if (!available) return
     const driver = new GarminHealthDriver({ username: 'test', password: 'test' })
-    expect(await driver.getReadiness()).toEqual([])
     expect(await driver.getSpO2()).toEqual([])
     expect(await driver.getBodyTemperature()).toEqual([])
-    expect(await driver.getVO2Max()).toEqual([])
-    expect(await driver.getBodyComposition()).toEqual([])
-    expect(await driver.getWeightMeasurements()).toEqual([])
   })
 })
 

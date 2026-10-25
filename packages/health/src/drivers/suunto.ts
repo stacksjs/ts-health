@@ -214,7 +214,7 @@ export class SuuntoCloudDriver extends BaseDeviceCloudDriver {
         remSleepDuration: rem,
         awakeTime: (numeric(entry.WakeAfterSleepOnsetDuration) ?? 0) + (numeric(entry.WakeBeforeOffBedDuration) ?? 0),
         timeInBed: inBed,
-        latency: numeric(entry.SleepOnsetLatencyDuration) ?? 0,
+        latency: numeric(entry.SleepOnsetLatencyDuration),
         efficiency: inBed > 0 ? Math.round(total / inBed * 100) : 0,
         ...(score !== undefined ? { score } : {}),
         ...(hrv !== undefined ? { averageHRV: hrv } : {}),

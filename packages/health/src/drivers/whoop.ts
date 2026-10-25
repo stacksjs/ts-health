@@ -40,6 +40,8 @@ export class WhoopDriver implements HealthDriver {
 
   private accessToken: string
   private baseUrl: string
+  /** Repeated views of one sync share immutable provider snapshots for 30 seconds. */
+  private responses = new Map<string, { at: number, value: unknown }>()
 
   constructor(accessToken: string, baseUrl?: string) {
     this.accessToken = accessToken
@@ -61,6 +63,9 @@ export class WhoopDriver implements HealthDriver {
       }
     }
 
+    const cached = this.responses.get(url.href)
+    if (cached && Date.now() - cached.at < 30_000) return structuredClone(cached.value) as T
+
     const response = await fetch(url.toString(), {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
@@ -72,12 +77,16 @@ export class WhoopDriver implements HealthDriver {
       throw new Error(`WHOOP API error ${response.status}: ${body}`)
     }
 
-    return response.json() as Promise<T>
+    const value = await response.json()
+    this.responses.set(url.href, { at: Date.now(), value })
+    if (this.responses.size > 32) this.responses.delete(this.responses.keys().next().value!)
+    return structuredClone(value) as T
   }
 
   private async fetchAllPages<T>(endpoint: string, params?: Record<string, string>): Promise<T[]> {
     const allData: T[] = []
     let nextToken: string | null = null
+    const seen = new Set<string>()
 
     do {
       const queryParams = { ...params }
@@ -88,6 +97,8 @@ export class WhoopDriver implements HealthDriver {
       const response = await this.request<WhoopListResponse<T>>(endpoint, queryParams)
       allData.push(...response.records)
       nextToken = response.next_token
+      if (nextToken && seen.has(nextToken)) throw new Error('WHOOP repeated a pagination token')
+      if (nextToken) seen.add(nextToken)
     } while (nextToken)
 
     return allData
@@ -106,7 +117,7 @@ export class WhoopDriver implements HealthDriver {
 
   async getSleep(options?: DateRangeOptions): Promise<SleepSession[]> {
     const params = this.buildDateParams(options)
-    const raw = await this.fetchAllPages<WhoopSleep>('/v1/activity/sleep', params)
+    const raw = await this.fetchAllPages<WhoopSleep>('/v2/activity/sleep', params)
 
     return raw.map(s => this.mapSleepSession(s))
   }
@@ -132,13 +143,17 @@ export class WhoopDriver implements HealthDriver {
 
   async getDailyActivity(options?: DateRangeOptions): Promise<DailyActivity[]> {
     const params = this.buildDateParams(options)
-    const raw = await this.fetchAllPages<WhoopCycle>('/v1/cycle', params)
+    const raw = await this.fetchAllPages<WhoopCycle>('/v2/cycle', params)
 
     return raw
       .filter(c => c.score !== null)
       .map(c => ({
         day: c.start.slice(0, 10),
         score: Math.round((c.score!.strain / 21) * 100),
+        strain: c.score!.strain,
+        kilojoules: c.score!.kilojoule,
+        averageHeartRate: c.score!.average_heart_rate,
+        maxHeartRate: c.score!.max_heart_rate,
         activeCalories: Math.round(c.score!.kilojoule * 0.239),
         totalCalories: Math.round(c.score!.kilojoule * 0.239),
         contributors: {},
@@ -153,10 +168,11 @@ export class WhoopDriver implements HealthDriver {
 
   async getWorkouts(options?: DateRangeOptions): Promise<Workout[]> {
     const params = this.buildDateParams(options)
-    const raw = await this.fetchAllPages<WhoopWorkout>('/v1/activity/workout', params)
+    const raw = await this.fetchAllPages<WhoopWorkout>('/v2/activity/workout', params)
 
     return raw.map(w => ({
-      id: w.id.toString(),
+      // Retain the old stable identity where WHOOP supplies the migration id.
+      id: String(w.activity_v1_id ?? w.id),
       activity: `sport_${w.sport_id}`,
       day: w.start.slice(0, 10),
       startDatetime: w.start,
@@ -166,6 +182,7 @@ export class WhoopDriver implements HealthDriver {
       averageHeartRate: w.score?.average_heart_rate,
       maxHeartRate: w.score?.max_heart_rate,
       source: 'whoop' as const,
+      details: w as unknown as Record<string, unknown>,
     }))
   }
 
@@ -175,7 +192,7 @@ export class WhoopDriver implements HealthDriver {
 
   async getReadiness(options?: DateRangeOptions): Promise<DailyReadiness[]> {
     const params = this.buildDateParams(options)
-    const raw = await this.fetchAllPages<WhoopRecovery>('/v1/recovery', params)
+    const raw = await this.fetchAllPages<WhoopRecovery>('/v2/recovery', params)
 
     return raw
       .filter(r => r.score !== null)
@@ -221,7 +238,7 @@ export class WhoopDriver implements HealthDriver {
 
   async getSpO2(options?: DateRangeOptions): Promise<DailySpO2[]> {
     const params = this.buildDateParams(options)
-    const raw = await this.fetchAllPages<WhoopRecovery>('/v1/recovery', params)
+    const raw = await this.fetchAllPages<WhoopRecovery>('/v2/recovery', params)
 
     return raw
       .filter(r => r.score?.spo2_percentage != null)
@@ -237,11 +254,10 @@ export class WhoopDriver implements HealthDriver {
   // ===========================================================================
 
   async getStress(options?: DateRangeOptions): Promise<DailyStress[]> {
-    const cycles = await this.getDailyActivity(options)
-
-    return cycles.map(c => ({
-      day: c.day,
-      stressHigh: c.score,
+    const cycles = await this.fetchAllPages<WhoopCycle>('/v2/cycle', this.buildDateParams(options))
+    return cycles.filter(c => c.score != null).map(c => ({
+      day: c.start.slice(0, 10),
+      strain: c.score!.strain,
       source: 'whoop' as const,
     }))
   }
@@ -252,13 +268,13 @@ export class WhoopDriver implements HealthDriver {
 
   async getBodyTemperature(options?: DateRangeOptions): Promise<BodyTemperature[]> {
     const params = this.buildDateParams(options)
-    const raw = await this.fetchAllPages<WhoopRecovery>('/v1/recovery', params)
+    const raw = await this.fetchAllPages<WhoopRecovery>('/v2/recovery', params)
 
     return raw
       .filter(r => r.score?.skin_temp_celsius != null)
       .map(r => ({
         day: r.created_at.slice(0, 10),
-        deviation: r.score!.skin_temp_celsius!,
+        celsius: r.score!.skin_temp_celsius!,
         source: 'whoop' as const,
       }))
   }
@@ -284,7 +300,7 @@ export class WhoopDriver implements HealthDriver {
 
   async getPersonalInfo(): Promise<PersonalInfo | null> {
     try {
-      const body = await this.request<WhoopBodyMeasurement>('/v1/user/measurement/body')
+      const body = await this.request<WhoopBodyMeasurement>('/v2/user/measurement/body')
       return {
         weight: body.weight_kilogram,
         height: body.height_meter,
@@ -304,7 +320,7 @@ export class WhoopDriver implements HealthDriver {
     const day = raw.start.slice(0, 10)
 
     return {
-      id: raw.id.toString(),
+      id: String(raw.activity_v1_id ?? raw.id),
       day,
       bedtimeStart: raw.start,
       bedtimeEnd: raw.end,
@@ -319,12 +335,15 @@ export class WhoopDriver implements HealthDriver {
       remSleepDuration: score ? Math.round(score.stage_summary.total_rem_sleep_time_milli / 1000) : 0,
       awakeTime: score ? Math.round(score.stage_summary.total_awake_time_milli / 1000) : 0,
       timeInBed: score ? Math.round(score.stage_summary.total_in_bed_time_milli / 1000) : 0,
-      latency: 0,
+      latency: undefined,
       efficiency: score?.sleep_efficiency_percentage ?? 0,
       averageBreath: score?.respiratory_rate ?? undefined,
       restlessPeriods: score?.stage_summary.disturbance_count,
       stages: [],
       source: 'whoop' as const,
+      processing: score == null,
+      score: score?.sleep_performance_percentage ?? undefined,
+      details: raw as unknown as Record<string, unknown>,
     }
   }
 }

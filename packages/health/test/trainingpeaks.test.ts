@@ -62,7 +62,7 @@ describe('TrainingPeaks driver', () => {
     expect((await driver.getWeightMeasurements())[0]?.weight).toBe(68)
     expect((await driver.getWeightMeasurements())[0]?.bodyFatPercentage).toBe(18)
     expect((await driver.getDailyActivity())[0]?.steps).toBe(8000)
-    expect((await driver.getStress())[0]?.stressHigh).toBe(0)
+    expect((await driver.getStress())[0]?.score).toBe(0)
     expect(normalizeTrainingPeaksMetrics(rows)[0].Fatigue).toBeUndefined()
     expect(await driver.getDailyMetrics()).toEqual(rows)
   })

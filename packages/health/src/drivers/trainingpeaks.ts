@@ -309,8 +309,8 @@ export class TrainingPeaksHealthDriver implements HealthDriver {
       .filter((m: { Stress?: number }) => m.Stress != null)
       .map((m: { Date: string, Stress?: number, Fatigue?: number }) => ({
         day: m.Date,
-        stressHigh: m.Stress,
-        recoveryHigh: m.Fatigue != null ? Math.max(0, 5 - m.Fatigue) : undefined,
+        score: m.Stress,
+        fatigue: m.Fatigue,
         source: 'trainingpeaks' as const,
       }))
   }

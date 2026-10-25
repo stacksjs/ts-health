@@ -218,7 +218,7 @@ export class AppleHealthDriver implements HealthDriver {
         remSleepDuration: Math.round(remDuration),
         awakeTime: Math.round(awakeDuration),
         timeInBed: Math.round(timeInBed),
-        latency: 0,
+        latency: undefined,
         efficiency: timeInBed > 0 ? Math.round((totalDuration / timeInBed) * 100) : 0,
         stages: [],
         source: 'apple_health' as const,

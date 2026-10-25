@@ -636,12 +636,13 @@ addCommonOptions(cli.command('vo2max [date]', 'View VO2 max estimates'))
       }
 
       for (const r of records) {
-        console.log(`${r.day}: ${r.vo2Max.toFixed(1)} ml/kg/min`)
+        console.log(`${r.day}: ${r.vo2Max == null ? r.range ? `${r.range.min}–${r.range.max}` : 'unknown' : r.vo2Max.toFixed(1)} ml/kg/min`)
       }
 
-      if (records.length >= 2) {
-        const first = records[0].vo2Max
-        const last = records[records.length - 1].vo2Max
+      const precise = records.flatMap(record => record.vo2Max == null ? [] : [record.vo2Max])
+      if (precise.length >= 2) {
+        const first = precise[0]!
+        const last = precise[precise.length - 1]!
         const change = last - first
         console.log(`\nTrend: ${change > 0 ? '+' : ''}${change.toFixed(1)} ml/kg/min over ${records.length} reading(s)`)
       }

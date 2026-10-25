@@ -213,7 +213,7 @@ export class PolarAccessLinkDriver extends BaseDeviceCloudDriver {
         remSleepDuration: rem,
         awakeTime: numeric(night.total_interruption_duration) ?? Math.max(0, inBed - total),
         timeInBed: inBed,
-        latency: 0,
+        latency: undefined,
         efficiency: inBed > 0 ? Math.round(total / inBed * 100) : 0,
         ...(positive(night.sleep_score) !== undefined ? { score: positive(night.sleep_score) } : {}),
         ...(beats.length ? { averageHeartRate: Math.round(beats.reduce((a, b) => a + b, 0) / beats.length), lowestHeartRate: Math.min(...beats) } : {}),

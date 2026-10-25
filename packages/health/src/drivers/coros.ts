@@ -324,7 +324,7 @@ export class CorosCloudDriver extends BaseDeviceCloudDriver {
         remSleepDuration: 0,
         awakeTime: 0,
         timeInBed: seconds,
-        latency: 0,
+        latency: undefined,
         efficiency: 0,
         ...(average !== undefined ? { averageHeartRate: average } : {}),
         ...(hrv !== undefined ? { averageHRV: hrv } : {}),

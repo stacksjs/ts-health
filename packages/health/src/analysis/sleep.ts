@@ -12,19 +12,20 @@ export class SleepAnalyzer {
     const efficiencyScore = this.scoreEfficiency(session.efficiency)
     const deepSleepScore = this.scoreDeepSleep(session.deepSleepDuration, session.totalSleepDuration)
     const remSleepScore = this.scoreRemSleep(session.remSleepDuration, session.totalSleepDuration)
-    const latencyScore = this.scoreLatency(session.latency)
+    const latencyScore = session.latency == null ? undefined : this.scoreLatency(session.latency)
     const consistencyScore = recentSessions && recentSessions.length >= 3
       ? this.scoreSleepConsistency(recentSessions)
       : 50
 
-    const overall = Math.round(
+    const observedWeight = latencyScore == null ? 0.9 : 1
+    const overall = Math.round((
       durationScore * 0.25
       + efficiencyScore * 0.20
       + deepSleepScore * 0.20
       + remSleepScore * 0.15
-      + latencyScore * 0.10
-      + consistencyScore * 0.10,
-    )
+      + (latencyScore ?? 0) * 0.10
+      + consistencyScore * 0.10
+    ) / observedWeight)
 
     return {
       overall,

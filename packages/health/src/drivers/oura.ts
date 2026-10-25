@@ -42,6 +42,8 @@ export interface OuraDailyHealth {
   steps?: number
   activeCalories?: number
   details: Array<{ label: string, value: number | string }>
+  /** Complete own-account observations, including naps and per-sample sleep series. */
+  observations?: Partial<Record<'sleep' | 'dailySleep' | 'readiness' | 'dailyActivity', unknown[]>>
 }
 
 export interface OuraDailyHealthResult {
@@ -175,6 +177,12 @@ export class OuraDriver implements HealthDriver {
       catch (cause) { errors.push({ endpoint, message: cause instanceof Error ? cause.message : String(cause) }) }
     }
     await read<OuraSleepResponse>('sleep', rows => {
+      for (const row of rows) {
+        const target = day(row.day)
+        const observations = target.observations ||= {}
+        const records = observations.sleep ||= []
+        records.push(row)
+      }
       const nights = new Map<string, OuraSleepResponse>()
       for (const row of rows) {
         if (row.type !== 'long_sleep' && row.type !== 'sleep') continue
@@ -197,12 +205,18 @@ export class OuraDriver implements HealthDriver {
     await read<OuraDailySleepResponse>('daily_sleep', rows => {
       for (const row of rows) {
         const target = day(row.day)
+        const observations = target.observations ||= {}
+        const records = observations.dailySleep ||= []
+        records.push(row)
         if (row.score != null) target.sleepScore = row.score
       }
     })
     await read<OuraDailyReadinessResponse>('daily_readiness', rows => {
       for (const row of rows) {
         const target = day(row.day)
+        const observations = target.observations ||= {}
+        const records = observations.readiness ||= []
+        records.push(row)
         if (row.score != null) target.readiness = row.score
         detail(target, 'Temperature deviation (°C)', row.temperature_deviation)
         for (const [key, value] of Object.entries(row.contributors ?? {}))
@@ -212,6 +226,9 @@ export class OuraDriver implements HealthDriver {
     await read<OuraDailyActivityResponse>('daily_activity', rows => {
       for (const row of rows) {
         const target = day(row.day)
+        const observations = target.observations ||= {}
+        const records = observations.dailyActivity ||= []
+        records.push(row)
         if (row.steps != null) target.steps = row.steps
         if (row.active_calories != null) target.activeCalories = row.active_calories
         detail(target, 'Activity score', row.score)

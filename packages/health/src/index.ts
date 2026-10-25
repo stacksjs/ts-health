@@ -1,6 +1,7 @@
 // Core exports
 export * from './config'
 export * from './types'
+export * from './read-errors'
 
 // Health platform drivers (Oura, WHOOP, Apple Health, Fitbit, Withings, Renpho)
 export * from './drivers'

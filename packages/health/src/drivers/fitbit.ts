@@ -1,3 +1,4 @@
+import { PartialHealthReadError } from '../read-errors'
 import type {
   HealthMetric,
   HealthDriver,
@@ -164,10 +165,12 @@ interface FitbitProfileResponse {
 }
 
 interface FitbitExerciseResponse {
+  pagination?: { next?: string }
   activities: Array<{
     activityId: number
     activityParentId: number
     activityParentName: string
+    activityName?: string
     calories: number
     description: string
     distance?: number
@@ -218,6 +221,7 @@ export class FitbitDriver implements HealthDriver {
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
+        'Accept-Language': 'en_GB',
       },
     })
 
@@ -229,17 +233,16 @@ export class FitbitDriver implements HealthDriver {
     return response.json() as Promise<T>
   }
 
-  private formatDate(date: string): string {
-    return date // already YYYY-MM-DD
-  }
-
   private getDateRange(options?: DateRangeOptions): {
     start: string
     end: string
   } {
     const end = options?.endDate ?? new Date().toISOString().slice(0, 10)
     const start = options?.startDate ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-    return { start: this.formatDate(start), end: this.formatDate(end) }
+    for (const day of [start, end])
+      if (!/^\d{4}-\d\d-\d\d$/.test(day) || !Number.isFinite(Date.parse(day)) || new Date(day).toISOString().slice(0, 10) !== day) throw new RangeError('Expected valid calendar dates')
+    if (start > end) throw new RangeError('Start date must precede end date')
+    return { start, end }
   }
 
   // ===========================================================================
@@ -294,7 +297,7 @@ export class FitbitDriver implements HealthDriver {
         efficiency: s.efficiency,
         deepSleep: s.totalSleepDuration > 0 ? Math.round((s.deepSleepDuration / s.totalSleepDuration) * 100) : undefined,
         remSleep: s.totalSleepDuration > 0 ? Math.round((s.remSleepDuration / s.totalSleepDuration) * 100) : undefined,
-        latency: s.latency < 20 * 60 ? 100 : s.latency < 45 * 60 ? 50 : 0,
+        latency: s.latency == null ? undefined : s.latency < 20 * 60 ? 100 : s.latency < 45 * 60 ? 50 : 0,
       },
       source: 'fitbit' as const,
     }))
@@ -357,21 +360,35 @@ export class FitbitDriver implements HealthDriver {
 
   async getWorkouts(options?: DateRangeOptions): Promise<Workout[]> {
     const { start, end } = this.getDateRange(options)
-    const raw = await this.request<FitbitExerciseResponse>(
-      `/1/user/-/activities/list.json?afterDate=${start}&beforeDate=${end}&sort=asc&offset=0&limit=100`,
-    )
-
-    return raw.activities.map(a => ({
-      id: a.logId.toString(),
-      activity: a.activityParentName || a.name,
-      day: a.startDate,
-      startDatetime: `${a.startDate}T${a.startTime}`,
-      endDatetime: new Date(new Date(`${a.startDate}T${a.startTime}`).getTime() + a.duration).toISOString(),
-      calories: a.calories || undefined,
-      distance: a.distance ? a.distance * 1000 : undefined,
-      averageHeartRate: a.averageHeartRate,
-      source: 'fitbit' as const,
-    }))
+    const beforeStart = new Date(Date.parse(`${start}T00:00:00Z`) - 86400000).toISOString().slice(0, 10)
+    let path = `/1/user/-/activities/list.json?afterDate=${beforeStart}&sort=asc&offset=0&limit=100`
+    const workouts: Workout[] = []
+    const seenPages = new Set<string>()
+    const seenIds = new Set<string>()
+    for (let page = 0; page < 100; page++) {
+      if (seenPages.has(path)) throw new PartialHealthReadError(workouts, [new Error('Fitbit repeated an activity page')])
+      seenPages.add(path)
+      const raw = await this.request<FitbitExerciseResponse>(path)
+      for (const activity of raw.activities) {
+        const started = /^\d{4}-\d\d-\d\dT/.test(activity.startTime) ? activity.startTime : `${activity.startDate}T${activity.startTime}`
+        const day = activity.startDate || started.slice(0, 10)
+        if (day > end) return workouts
+        if (day < start || seenIds.has(String(activity.logId))) continue
+        seenIds.add(String(activity.logId))
+        const unit = String(activity.distanceUnit || 'km').toLowerCase()
+        const factor = ['mile', 'miles', 'mi'].includes(unit) ? 1609.344 : ['meter', 'meters', 'm'].includes(unit) ? 1 : 1000
+        workouts.push({ id: String(activity.logId), activity: activity.activityParentName || activity.activityName || activity.name || 'Workout',
+          day, startDatetime: started, endDatetime: new Date(Date.parse(started) + activity.duration).toISOString(),
+          calories: activity.calories, distance: activity.distance == null ? undefined : activity.distance * factor,
+          averageHeartRate: activity.averageHeartRate, source: 'fitbit', details: activity as unknown as Record<string, unknown> })
+      }
+      if (!raw.pagination?.next) return workouts
+      const next = new URL(raw.pagination.next, this.baseUrl)
+      if (next.origin !== new URL(this.baseUrl).origin || next.pathname !== '/1/user/-/activities/list.json' || next.username || next.password)
+        throw new Error('Fitbit returned an invalid own-account pagination URL')
+      path = next.pathname + next.search
+    }
+    throw new PartialHealthReadError(workouts, [new Error('Fitbit activity page budget exceeded; use smaller date windows')])
   }
 
   // ===========================================================================
@@ -388,22 +405,19 @@ export class FitbitDriver implements HealthDriver {
 
   async getHeartRate(options?: DateRangeOptions): Promise<HeartRateSample[]> {
     const { start, end } = this.getDateRange(options)
-    const raw = await this.request<FitbitHeartRateResponse>(
-      `/1/user/-/activities/heart/date/${start}/${end}/1min.json`,
-    )
-
     const samples: HeartRateSample[] = []
-
-    if (raw['activities-heart-intraday']?.dataset) {
-      const date = raw['activities-heart'][0]?.dateTime ?? start
-      for (const point of raw['activities-heart-intraday'].dataset) {
-        samples.push({
-          timestamp: `${date}T${point.time}`,
-          bpm: point.value,
-        })
+    // Intraday is limited to 24 hours. Month-sized requests silently lose
+    // the series; fetch UTC days and keep each actual observation's instant.
+    for (let at = Date.parse(`${start}T00:00:00Z`); at <= Date.parse(`${end}T00:00:00Z`); at += 86400000) {
+      const day = new Date(at).toISOString().slice(0, 10)
+      const raw = await this.request<FitbitHeartRateResponse>(`/1/user/-/activities/heart/date/${day}/${day}/1min.json?timezone=UTC`)
+      for (const summary of raw['activities-heart'] || []) {
+        if (summary.value.restingHeartRate != null)
+          samples.push({ timestamp: `${summary.dateTime}T12:00:00Z`, day: summary.dateTime, bpm: summary.value.restingHeartRate, source: 'resting' })
       }
+      for (const point of raw['activities-heart-intraday']?.dataset || [])
+        samples.push({ timestamp: `${day}T${point.time}Z`, bpm: point.value })
     }
-
     return samples
   }
 
@@ -439,8 +453,9 @@ export class FitbitDriver implements HealthDriver {
         source: 'fitbit' as const,
       }))
     }
-    catch {
-      return []
+    catch (error) {
+      if (/API error 404\b/.test(String((error as Error)?.message))) return []
+      throw error
     }
   }
 
@@ -468,8 +483,9 @@ export class FitbitDriver implements HealthDriver {
         source: 'fitbit' as const,
       }))
     }
-    catch {
-      return []
+    catch (error) {
+      if (/API error 404\b/.test(String((error as Error)?.message))) return []
+      throw error
     }
   }
 
@@ -485,14 +501,21 @@ export class FitbitDriver implements HealthDriver {
         `/1/user/-/cardioscore/date/${start}/${end}.json`,
       )
 
-      return raw.cardioScore.map(c => ({
-        day: c.dateTime,
-        vo2Max: Number.parseFloat(c.value.vo2Max) || 0,
-        source: 'fitbit' as const,
-      }))
+      return raw.cardioScore.flatMap((c): VO2MaxReading[] => {
+        const value = String(c.value.vo2Max).trim()
+        const range = /^(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)$/.exec(value)
+        if (range) {
+          const min = Number(range[1])
+          const max = Number(range[2])
+          return min > 0 && max >= min ? [{ day: c.dateTime, range: { min, max }, source: 'fitbit' }] : []
+        }
+        const exact = Number(value)
+        return Number.isFinite(exact) && exact > 0 ? [{ day: c.dateTime, vo2Max: exact, source: 'fitbit' }] : []
+      })
     }
-    catch {
-      return []
+    catch (error) {
+      if (/API error 404\b/.test(String((error as Error)?.message))) return []
+      throw error
     }
   }
 
@@ -525,8 +548,9 @@ export class FitbitDriver implements HealthDriver {
         source: 'fitbit' as const,
       }))
     }
-    catch {
-      return []
+    catch (error) {
+      if (/API error 404\b/.test(String((error as Error)?.message))) return []
+      throw error
     }
   }
 

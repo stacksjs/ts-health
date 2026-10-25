@@ -36,6 +36,8 @@ describe('Oura daily recovery', () => {
     expect(result.days[0]).toMatchObject({ day: night.day, sleepHours: 7.5, sleepScore: 81, averageHRV: 62, restingHeartRate: 47, readiness: 85, steps: 0, activeCalories: 0 })
     expect(result.days[0]!.details).toContainEqual({ label: 'Readiness: resting heart rate (score)', value: 98 })
     expect(result.days[0]!.details).toContainEqual({ label: 'Deep sleep (hours)', value: 1.5 })
+    expect(result.days[0]!.observations?.sleep).toHaveLength(2)
+    expect(result.days[0]!.observations?.sleep?.[1]).toMatchObject({ id: 'nap', type: 'late_nap' })
     expect(requests.every(url => url.searchParams.get('start_date') === '2026-10-09' && url.searchParams.get('end_date') === '2026-10-12')).toBe(true)
   })
   it('includes the ending day through Oura’s exclusive sleep boundary and clips extra summaries', async () => {
@@ -77,8 +79,10 @@ describe('Oura daily recovery', () => {
     }) as typeof fetch
     const result = await new OuraDriver('test-token').getDailyHealth()
     expect(calls).toBe(2)
-    expect(result.days).toHaveLength(1)
-    expect(result.days[0]!.day).toBe(night.day)
+    expect(result.days).toHaveLength(2)
+    expect(result.days[0]!.observations?.sleep).toHaveLength(1)
+    expect(result.days[0]!.sleepHours).toBeUndefined()
+    expect(result.days[1]!.day).toBe(night.day)
   })
 })
 

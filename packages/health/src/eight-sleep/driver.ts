@@ -26,7 +26,7 @@ export class EightSleepDriver extends EightSleepClient implements HealthDriver {
     return (await this.getNights(options)).filter(night => night.bedtime && night.wakeTime && night.sleepSeconds !== null).map(night => ({
       id: `eight-sleep:${night.day}`, day: night.day, bedtimeStart: night.bedtime!, bedtimeEnd: night.wakeTime!, type: 'long_sleep',
       totalSleepDuration: night.sleepSeconds!, timeInBed: night.bedSeconds ?? 0, deepSleepDuration: night.deepSeconds ?? 0, lightSleepDuration: night.lightSeconds ?? 0,
-      remSleepDuration: night.remSeconds ?? 0, awakeTime: night.awakeSeconds ?? 0, latency: night.latencySeconds ?? 0, efficiency: night.efficiency ?? 0,
+      remSleepDuration: night.remSeconds ?? 0, awakeTime: night.awakeSeconds ?? 0, latency: night.latencySeconds ?? undefined, efficiency: night.efficiency ?? 0,
       ...(night.score === null ? {} : { score: night.score }), ...(night.heartRate === null ? {} : { averageHeartRate: night.heartRate }),
       ...(night.restingHeartRate === null ? {} : { lowestHeartRate: night.restingHeartRate }), ...(night.hrv === null ? {} : { averageHRV: night.hrv }),
       ...(night.respiratoryRate === null ? {} : { averageBreath: night.respiratoryRate }),
