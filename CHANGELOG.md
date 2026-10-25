@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.21...v0.1.22)
+
+## ✨ Features
+
+- retain complete device observations and correct metric semantics ([4bde4df](https://github.com/stacksjs/ts-health/commit/4bde4df)) _(by Chris Breuer <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.22 ([7d54bb2](https://github.com/stacksjs/ts-health/commit/7d54bb2)) _(by Chris Breuer <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris Breuer <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.20...v0.1.21)
 
 ## ✨ Features
