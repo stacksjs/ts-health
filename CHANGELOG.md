@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.29...v0.1.30)
+
+## 🐛 Bug Fixes
+
+- **oura**: include the separate resilience scope ([53beb51](https://github.com/stacksjs/ts-health/commit/53beb51)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.30 ([6e197a0](https://github.com/stacksjs/ts-health/commit/6e197a0)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.28...v0.1.29)
 
 ## 🐛 Bug Fixes
