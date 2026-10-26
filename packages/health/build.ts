@@ -5,6 +5,7 @@ const entrypoints = [
   'src/index.ts',
   'src/drivers/index.ts',
   'src/device-clouds.ts',
+  'src/oura-bluetooth.ts',
   'src/hydration.ts',
   'src/larq/index.ts',
   'src/eight-sleep/index.ts',

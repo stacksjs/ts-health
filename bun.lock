@@ -18,6 +18,7 @@
         "health": "./dist/bin/cli.js",
       },
       "dependencies": {
+        "@zig-utils/oura": "https://github.com/zig-utils/zig-oura/releases/download/v0.1.2/zig-utils-oura-0.1.2.tgz",
         "ts-watches": "^0.1.10",
       },
       "devDependencies": {
@@ -125,6 +126,8 @@
     "@typescript/typescript-win32-arm64": ["@typescript/typescript-win32-arm64@7.0.2", "", { "os": "win32", "cpu": "arm64" }, "sha512-Gyl1Vy6OsWesLzmq+EP0Fb7b4Nid5232AvcA2SFcdYreldpNtYFFofPjnt62y9hQy7VTaZp65ICJjuAQRaVcIQ=="],
 
     "@typescript/typescript-win32-x64": ["@typescript/typescript-win32-x64@7.0.2", "", { "os": "win32", "cpu": "x64" }, "sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g=="],
+
+    "@zig-utils/oura": ["@zig-utils/oura@https://github.com/zig-utils/zig-oura/releases/download/v0.1.2/zig-utils-oura-0.1.2.tgz", {}, "sha512-FwDxhr5OG3lXZT2CYTfYxoQruyZYn8yVkngebsnc1+F/lKNJmLQPir5u9+gwF8F4WMxDcH8k0MV/9KtIoNSxtw=="],
 
     "abort-controller": ["abort-controller@3.0.0", "", { "dependencies": { "event-target-shim": "^5.0.0" } }, "sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg=="],
 

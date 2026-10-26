@@ -249,3 +249,35 @@ const restMode = await oura.getRestModePeriods({ startDate: '2025-01-01' })
 const profile = await oura.getPersonalInfo()
 console.log(`Age: ${profile?.age}, Weight: ${profile?.weight}kg`)
 ```
+
+## Direct Bluetooth
+
+The isolated `ts-health/oura-bluetooth` entry point exports the compiled
+[zig-oura](https://github.com/zig-utils/zig-oura) implementation. It uses an
+ordered native GATT bridge; no Oura cloud credentials or server proxy are used.
+
+```ts
+import { OURA_BLE, connectOuraBluetooth } from 'ts-health/oura-bluetooth'
+
+const nearby = await bluetooth.scan({ services: [OURA_BLE.service], timeoutMs: 10000 })
+// The application shows nearby rings and the person explicitly chooses one.
+const client = await connectOuraBluetooth(bluetooth, selectedDeviceId, { current: accountStillCurrent })
+try {
+  await client.open(await keychain.readFor(selectedDeviceId))
+  await client.sync({ cursor: savedCursor, onEvent: persistRawEvent, onBatch: persistCheckpoint })
+}
+finally { await client.close() }
+```
+
+Existing configured rings require their existing 16-byte BLE key, which is
+separate from the account password or OAuth token. Never reset a ring to make a
+connection work. Initial key setup is a separate explicit operation for a ring
+that itself reports being unconfigured; persist the random key securely before
+installing it. See zig-oura's native C/Swift interfaces and setup contract.
+
+History timestamps are ring-relative, not Unix dates. Retain raw events and
+clock anchors, ring/reset identity, and durable checkpoints. Do not assign a
+sample to today's date or label a locally derived value as an official Oura
+score. Cloud integration can supply official scores and data unavailable from
+the local ring. Bluetooth interoperability is experimental until tested against
+the person's actual ring and firmware.
