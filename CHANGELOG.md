@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.28...v0.1.29)
+
+## 🐛 Bug Fixes
+
+- **oura**: request ring configuration and battery access ([4c02764](https://github.com/stacksjs/ts-health/commit/4c02764)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.29 ([48698e8](https://github.com/stacksjs/ts-health/commit/48698e8)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.27...v0.1.28)
 
 ## ✨ Features
