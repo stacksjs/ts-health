@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.31...v0.1.32)
+
+## 🐛 Bug Fixes
+
+- **oura**: preserve absent oxygen measurements without failing imports ([38f0a62](https://github.com/stacksjs/ts-health/commit/38f0a62)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.32 ([b12ecb6](https://github.com/stacksjs/ts-health/commit/b12ecb6)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.30...v0.1.31)
 
 ## 🐛 Bug Fixes
