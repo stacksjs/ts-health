@@ -7,11 +7,18 @@ export const OURA_COLLECTIONS = {
   sleep_time: 'date', tag: 'date', vO2_max: 'date', workout: 'date',
 } as const
 export type OuraCollection = keyof typeof OURA_COLLECTIONS
-export interface OuraCollectionQuery { startDate?: string, endDate?: string, nextToken?: string }
-export interface OuraCollectionPage { data: Record<string, unknown>[], nextToken: string | null }
-/** Publicly advertised OAuth scopes. Device endpoints can report a separate
- * requiredScope; never mistake that collection denial for an expired token. */
-export const OURA_OAUTH_SCOPES = ['email', 'personal', 'daily', 'heartrate', 'workout', 'tag', 'session', 'spo2', 'heart_health'] as const
+export interface OuraCollectionQuery {
+  startDate?: string
+  endDate?: string
+  nextToken?: string
+}
+export interface OuraCollectionPage {
+  data: Record<string, unknown>[]
+  nextToken: string | null
+}
+/** Verified Oura consent scopes. ring_configuration also authorizes battery
+ * history; Oura offers it in consent although OpenAPI 1.42 omits it. */
+export const OURA_OAUTH_SCOPES = ['email', 'personal', 'daily', 'heartrate', 'workout', 'tag', 'session', 'spo2', 'heart_health', 'ring_configuration'] as const
 export class OuraApiError extends Error {
   readonly requiredScope: string | null
   constructor(public readonly status: number, public readonly collection: string, detail: unknown) {

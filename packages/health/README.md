@@ -75,3 +75,5 @@ the user's LARQ account. Direct Bluetooth hydration decoding is not implemented.
 
 Protocol references: [OpenLARQ](https://github.com/lavyyy/openlarq),
 [LARQ Apple Health compatibility](https://support.livelarq.com/hc/en-us/articles/37061029850011-Apple-Health-compatibility).
+
+Oura OAuth also accepts `ring_configuration`, which is omitted from OpenAPI 1.42’s scope list. Include it (or use `OURA_OAUTH_SCOPES`) to read ring configuration **and ring battery history**. The consent screen calls it “Ring configuration settings”; existing tokens need a new grant. A missing collection scope is reported as `OuraApiError.requiredScope`, even when Oura returns HTTP 401.

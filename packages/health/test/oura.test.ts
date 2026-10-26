@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'bun:test'
 import { OuraDriver } from '../src/drivers/oura'
-import { OURA_COLLECTIONS, OuraApiError } from '../src/drivers/oura-collections'
+import { OURA_COLLECTIONS, OURA_OAUTH_SCOPES, OuraApiError } from '../src/drivers/oura-collections'
 
 const realFetch = globalThis.fetch
 afterEach(() => { globalThis.fetch = realFetch })
@@ -182,4 +182,9 @@ it('resumes with unchanged date filters and rejects malformed pages or repeating
   await expect(driver.getCollectionPage('tag')).rejects.toThrow('Malformed')
   await expect(driver.getCollectionPage('unknown' as never)).rejects.toThrow('Unknown')
   await expect(driver.getCollectionPage('tag', { startDate: '2026-02-30' })).rejects.toThrow(RangeError)
+})
+
+it('requests the verified ring configuration and battery authorization scope', () => {
+  expect(OURA_OAUTH_SCOPES).toContain('ring_configuration')
+  expect(new Set(OURA_OAUTH_SCOPES).size).toBe(10)
 })
