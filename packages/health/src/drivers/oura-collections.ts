@@ -17,8 +17,9 @@ export interface OuraCollectionPage {
   nextToken: string | null
 }
 /** Verified Oura consent scopes. ring_configuration also authorizes battery
- * history; Oura offers it in consent although OpenAPI 1.42 omits it. */
-export const OURA_OAUTH_SCOPES = ['email', 'personal', 'daily', 'heartrate', 'workout', 'tag', 'session', 'spo2', 'heart_health', 'ring_configuration'] as const
+ * history, and stress authorizes resilience. Oura offers both in consent
+ * although OpenAPI 1.42 omits them. */
+export const OURA_OAUTH_SCOPES = ['email', 'personal', 'daily', 'heartrate', 'workout', 'tag', 'session', 'spo2', 'heart_health', 'ring_configuration', 'stress'] as const
 export class OuraApiError extends Error {
   readonly requiredScope: string | null
   constructor(public readonly status: number, public readonly collection: string, detail: unknown) {

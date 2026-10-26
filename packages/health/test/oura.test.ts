@@ -186,5 +186,6 @@ it('resumes with unchanged date filters and rejects malformed pages or repeating
 
 it('requests the verified ring configuration and battery authorization scope', () => {
   expect(OURA_OAUTH_SCOPES).toContain('ring_configuration')
-  expect(new Set(OURA_OAUTH_SCOPES).size).toBe(10)
+  expect(OURA_OAUTH_SCOPES).toContain('stress')
+  expect(new Set(OURA_OAUTH_SCOPES).size).toBe(11)
 })
