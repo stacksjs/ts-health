@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.26...v0.1.27)
+
+## ✨ Features
+
+- expose native Oura Bluetooth through zig-oura ([efae9ee](https://github.com/stacksjs/ts-health/commit/efae9ee)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.27 ([2751482](https://github.com/stacksjs/ts-health/commit/2751482)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.25...v0.1.26)
 
 ## 🐛 Bug Fixes
