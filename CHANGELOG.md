@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.27...v0.1.28)
+
+## ✨ Features
+
+- **oura**: expose lossless pages for every collection ([0891d42](https://github.com/stacksjs/ts-health/commit/0891d42)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.28 ([517a5f9](https://github.com/stacksjs/ts-health/commit/517a5f9)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.26...v0.1.27)
 
 ## ✨ Features
