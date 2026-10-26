@@ -281,3 +281,18 @@ sample to today's date or label a locally derived value as an official Oura
 score. Cloud integration can supply official scores and data unavailable from
 the local ring. Bluetooth interoperability is experimental until tested against
 the person's actual ring and firmware.
+
+## Complete source archive
+
+`getCollectionPage(collection, { startDate, endDate, nextToken })` reads one
+lossless page from any of the 19 public usercollection GET endpoints in Oura
+OpenAPI 1.42. `OURA_COLLECTIONS` lists their date dialects; sleep uses its
+exclusive end date, heart rate and battery use datetimes, and personal/ring
+configuration requests have no date filter. Unknown response fields and null
+values are retained. Persist each returned page before saving `nextToken`.
+
+`OuraApiError` exposes `status`, `collection`, and `requiredScope` separately.
+A collection-specific 401 (for example, ring configuration) does not establish
+that the account's access token is expired. Publicly advertised scopes are in
+`OURA_OAUTH_SCOPES`; a device endpoint can require an additional entitlement
+that must be granted by Oura. Never report inaccessible collections as synced.

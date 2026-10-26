@@ -1,3 +1,5 @@
+import { OURA_COLLECTIONS, OuraApiError } from './oura-collections'
+import type { OuraCollection, OuraCollectionPage, OuraCollectionQuery } from './oura-collections'
 import type {
   HealthMetric,
   HealthDriver,
@@ -92,19 +94,54 @@ export class OuraDriver implements HealthDriver {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
       },
+      signal: AbortSignal.timeout(30000),
     })
 
     if (!response.ok) {
-      const body = await response.text()
-      throw new Error(`Oura API error ${response.status}: ${body}`)
+      const body = await response.json().catch(() => null)
+      throw new OuraApiError(response.status, endpoint.split('/').at(-1)!, body && typeof body === 'object' && 'detail' in body ? body.detail : null)
     }
 
     return response.json() as Promise<T>
   }
 
+  /** One lossless page. Hosts persist it before saving nextToken, so interrupted
+   * imports resume without replaying or truncating an entire collection. */
+  async getCollectionPage(collection: OuraCollection, options: OuraCollectionQuery = {}): Promise<OuraCollectionPage> {
+    if (!Object.hasOwn(OURA_COLLECTIONS, collection)) throw new RangeError('Unknown Oura collection')
+    const mode = OURA_COLLECTIONS[collection]
+    let params: Record<string, string> = {}
+    if (mode === 'datetime') params = this.buildDatetimeParams(options)
+    else if (mode === 'date' || mode === 'sleep') {
+      for (const [name, value] of [['startDate', options.startDate], ['endDate', options.endDate]] as const) {
+        if (value !== undefined && (!CALENDAR_DAY.test(value) || toOuraDatetime(value, name, false).slice(0, 10) !== value))
+          throw new RangeError(`${name} must be a valid calendar day`)
+      }
+      if (options.startDate && options.endDate && options.startDate > options.endDate) throw new RangeError('Oura date range is reversed')
+      params = this.buildDateParams(options)
+      if (mode === 'sleep' && options.endDate) params.end_date = toOuraDatetime(options.endDate, 'endDate', true).slice(0, 10)
+    }
+    if (options.nextToken !== undefined) {
+      if (!options.nextToken || options.nextToken.length > 10000 || mode === 'single') throw new RangeError('Invalid Oura pagination token')
+      params.next_token = options.nextToken
+    }
+    const value = await this.request<unknown>(`/v2/usercollection/${collection}`, params)
+    if (mode === 'single') {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Malformed Oura personal information')
+      return { data: [value as Record<string, unknown>], nextToken: null }
+    }
+    const page = value as { data?: unknown, next_token?: unknown }
+    if (!page || !Array.isArray(page.data) || page.data.length > 100000 || page.data.some(row => !row || typeof row !== 'object' || Array.isArray(row))
+      || (page.next_token != null && (typeof page.next_token !== 'string' || !page.next_token || page.next_token.length > 10000)))
+      throw new TypeError('Malformed Oura collection page')
+    if (options.nextToken && page.next_token === options.nextToken) throw new Error('Oura repeated its pagination token')
+    return { data: page.data as Record<string, unknown>[], nextToken: page.next_token as string | null ?? null }
+  }
+
   private async fetchAllPages<T>(endpoint: string, params?: Record<string, string>): Promise<T[]> {
     const allData: T[] = []
     let nextToken: string | null = null
+    const seen = new Set<string>()
 
     do {
       const queryParams = { ...params }
@@ -113,8 +150,14 @@ export class OuraDriver implements HealthDriver {
       }
 
       const response = await this.request<OuraListResponse<T>>(endpoint, queryParams)
+      if (!Array.isArray(response.data) || response.data.some(row => !row || typeof row !== 'object' || Array.isArray(row)) || (response.next_token != null && typeof response.next_token !== 'string'))
+        throw new TypeError('Malformed Oura collection page')
       allData.push(...response.data)
       nextToken = response.next_token
+      if (nextToken) {
+        if (seen.has(nextToken) || seen.size >= 10000) throw new Error('Oura repeated or exceeded its pagination cursor limit')
+        seen.add(nextToken)
+      }
     } while (nextToken)
 
     return allData
