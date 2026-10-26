@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.25...v0.1.26)
+
+## 🐛 Bug Fixes
+
+- **coros**: advertise supported daily sleep summaries ([8e80695](https://github.com/stacksjs/ts-health/commit/8e80695)) _(by Chris Breuer <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.26 ([f42a61b](https://github.com/stacksjs/ts-health/commit/f42a61b)) _(by Chris Breuer <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris Breuer <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.24...v0.1.25)
 
 ## 🐛 Bug Fixes
