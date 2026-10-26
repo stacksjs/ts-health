@@ -194,7 +194,7 @@ export function parseCorosMcpActivities(text: string): CloudActivity[] {
 export class CorosMcpDriver extends BaseDeviceCloudDriver {
   readonly name: string = 'COROS'
   readonly provider: 'coros' = 'coros'
-  readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set(['workouts', 'dailyActivity', 'heartRate', 'hrv', 'sleep'])
+  readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set(['workouts', 'dailyActivity', 'heartRate', 'hrv', 'dailySleep'])
   readonly mcp: CorosMcpClient
   private daily: { at: number, text: Promise<string> } | null = null
 

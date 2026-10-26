@@ -32,6 +32,8 @@ describe('COROS public MCP', () => {
   })
   test('initializes a session once, handles SSE and retains genuine zero daily values', async () => {
     const driver = new CorosMcpDriver('test-token', { region: 'us', endpoint: server.url.toString() })
+    expect(driver.supportedMetrics.has('dailySleep')).toBe(true)
+    expect(driver.supportedMetrics.has('sleep')).toBe(false)
     expect(await driver.listActivities()).toEqual([])
     expect(await driver.getDailyActivity()).toEqual([{ day: '2026-10-16', score: 0, steps: 0, activeCalories: 0, totalCalories: 0, contributors: {}, source: 'coros' }])
     expect((await driver.getDailySleep())[0]).toEqual({ day: '2026-10-15', score: 91, contributors: { totalSleep: 7.95 }, source: 'coros' })
