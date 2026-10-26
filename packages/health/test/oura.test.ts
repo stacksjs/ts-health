@@ -87,6 +87,24 @@ describe('Oura daily recovery', () => {
   })
 })
 
+describe('Oura SpO2', () => {
+  it('keeps measured days across pages when other days have no oxygen measurement', async () => {
+    const missing = { day: '2025-09-02', spo2_percentage: null, breathing_disturbance_index: null }
+    let calls = 0
+    globalThis.fetch = (async (input: string) => {
+      const url = new URL(input)
+      calls++
+      return Response.json(url.searchParams.has('next_token')
+        ? { data: [{ day: '2025-09-03', spo2_percentage: { average: 97.5 } }, { day: '2025-09-04', spo2_percentage: { average: null } }], next_token: null }
+        : { data: [missing], next_token: 'page-2' })
+    }) as typeof fetch
+    const driver = new OuraDriver('test-token')
+    expect(await driver.getSpO2({ startDate: '2025-09-02', endDate: '2025-09-04' })).toEqual([{ day: '2025-09-03', averageSpO2: 97.5, source: 'oura' }])
+    expect(calls).toBe(2)
+    expect((await driver.getCollectionPage('daily_spo2')).data).toEqual([missing])
+  })
+})
+
 describe('Oura heart rate', () => {
   it('filters the heartrate collection by start_datetime and end_datetime', async () => {
     const requests = mockOura([], { heartrate: [{ timestamp: '2026-10-10T03:05:00+00:00', bpm: 48, source: 'sleep' }] })

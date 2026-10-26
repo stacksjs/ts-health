@@ -597,8 +597,8 @@ export interface OuraWorkoutResponse {
 export interface OuraDailySpO2Response {
   day: string
   spo2_percentage: {
-    average: number
-  }
+    average: number | null
+  } | null
 }
 
 export interface OuraDailyStressResponse {

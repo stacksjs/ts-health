@@ -463,11 +463,14 @@ export class OuraDriver implements HealthDriver {
     const params = this.buildDateParams(options)
     const raw = await this.fetchAllPages<OuraDailySpO2Response>('/v2/usercollection/daily_spo2', params)
 
-    return raw.map(s => ({
-      day: s.day,
-      averageSpO2: s.spo2_percentage.average,
-      source: 'oura' as const,
-    }))
+    // Oura retains a daily document even when no oxygen reading was recorded.
+    // Keep those documents in collection reads, but never invent a measurement.
+    return raw.flatMap(s => {
+      const average = s.spo2_percentage?.average
+      return typeof average === 'number' && Number.isFinite(average)
+        ? [{ day: s.day, averageSpO2: average, source: 'oura' as const }]
+        : []
+    })
   }
 
   // ===========================================================================
