@@ -1,3 +1,5 @@
+/** Oura limits both heart-rate and ring-battery instant queries to 30 days. */
+export const OURA_MAX_DATETIME_DAYS = 30
 /** Every public usercollection GET in Oura OpenAPI 1.42. Keep original fields. */
 export const OURA_COLLECTIONS = {
   daily_activity: 'date', daily_cardiovascular_age: 'date', daily_readiness: 'date',

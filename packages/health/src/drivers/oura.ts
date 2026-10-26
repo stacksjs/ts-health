@@ -1,4 +1,4 @@
-import { OURA_COLLECTIONS, OuraApiError } from './oura-collections'
+import { OURA_COLLECTIONS, OURA_MAX_DATETIME_DAYS, OuraApiError } from './oura-collections'
 import type { OuraCollection, OuraCollectionPage, OuraCollectionQuery } from './oura-collections'
 import type {
   HealthMetric,
@@ -111,7 +111,11 @@ export class OuraDriver implements HealthDriver {
     if (!Object.hasOwn(OURA_COLLECTIONS, collection)) throw new RangeError('Unknown Oura collection')
     const mode = OURA_COLLECTIONS[collection]
     let params: Record<string, string> = {}
-    if (mode === 'datetime') params = this.buildDatetimeParams(options)
+    if (mode === 'datetime') {
+      params = this.buildDatetimeParams(options)
+      if (params.start_datetime && params.end_datetime && Date.parse(params.end_datetime) - Date.parse(params.start_datetime) > OURA_MAX_DATETIME_DAYS * 86400000)
+        throw new RangeError('Oura instant collection pages cannot exceed 30 days')
+    }
     else if (mode === 'date' || mode === 'sleep') {
       for (const [name, value] of [['startDate', options.startDate], ['endDate', options.endDate]] as const) {
         if (value !== undefined && (!CALENDAR_DAY.test(value) || toOuraDatetime(value, name, false).slice(0, 10) !== value))
@@ -170,6 +174,7 @@ export class OuraDriver implements HealthDriver {
       params.start_datetime = toOuraDatetime(options.startDate, 'startDate', false)
     if (options?.endDate)
       params.end_datetime = toOuraDatetime(options.endDate, 'endDate', true)
+    if (params.start_datetime && params.end_datetime && Date.parse(params.start_datetime) > Date.parse(params.end_datetime)) throw new RangeError('Oura datetime range is reversed')
     return params
   }
 
@@ -415,13 +420,22 @@ export class OuraDriver implements HealthDriver {
    */
   async getHeartRate(options?: DateRangeOptions): Promise<HeartRateSample[]> {
     const params = this.buildDatetimeParams(options)
-    const raw = await this.fetchAllPages<OuraHeartRateResponse>('/v2/usercollection/heartrate', params)
-
-    return raw.map(hr => ({
-      timestamp: hr.timestamp,
-      bpm: hr.bpm,
-      source: hr.source,
-    }))
+    const start = params.start_datetime ? Date.parse(params.start_datetime) : null
+    const end = params.end_datetime ? Date.parse(params.end_datetime) : Date.now()
+    const width = OURA_MAX_DATETIME_DAYS * 86400000
+    const raw: OuraHeartRateResponse[] = []
+    if (start !== null && end - start > width) {
+      for (let from = start; from < end; from += width)
+        raw.push(...await this.fetchAllPages<OuraHeartRateResponse>('/v2/usercollection/heartrate', { start_datetime: new Date(from).toISOString(), end_datetime: new Date(Math.min(from + width, end)).toISOString() }))
+    }
+    else raw.push(...await this.fetchAllPages<OuraHeartRateResponse>('/v2/usercollection/heartrate', params))
+    const distinct = new Map<string, HeartRateSample>()
+    for (const hr of raw) {
+      const timestamp = Date.parse(hr.timestamp)
+      if (start !== null && timestamp < start || options?.endDate && (CALENDAR_DAY.test(options.endDate) ? timestamp >= end : timestamp > end)) continue
+      distinct.set(JSON.stringify([hr.timestamp, hr.source]), { timestamp: hr.timestamp, bpm: hr.bpm, source: hr.source })
+    }
+    return [...distinct.values()]
   }
 
   // ===========================================================================

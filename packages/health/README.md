@@ -79,3 +79,5 @@ Protocol references: [OpenLARQ](https://github.com/lavyyy/openlarq),
 Oura OAuth also accepts `ring_configuration`, which is omitted from OpenAPI 1.42’s scope list. Include it (or use `OURA_OAUTH_SCOPES`) to read ring configuration **and ring battery history**. The consent screen calls it “Ring configuration settings”; existing tokens need a new grant. A missing collection scope is reported as `OuraApiError.requiredScope`, even when Oura returns HTTP 401.
 
 The `daily_resilience` collection separately requires the consent scope `stress`, even though `daily_stress` works with the `daily` grant. `OURA_OAUTH_SCOPES` includes both independently required device and stress scopes. Check every collection after authorization; success of one daily endpoint does not establish access to the others.
+
+Oura rejects heart-rate and ring-battery queries longer than 30 days. `getCollectionPage` enforces this limit (calendar `endDate` includes the whole day); hosts must paginate each window before moving to the next. `OURA_MAX_DATETIME_DAYS` exposes the limit. `getHeartRate` splits longer ranges, follows each window’s pages, and removes duplicate boundary samples.

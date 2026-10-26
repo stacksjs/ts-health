@@ -189,3 +189,32 @@ it('requests the verified ring configuration and battery authorization scope', (
   expect(OURA_OAUTH_SCOPES).toContain('stress')
   expect(new Set(OURA_OAUTH_SCOPES).size).toBe(11)
 })
+
+it('rejects collection pages wider than Oura’s 30-day instant limit before HTTP', async () => {
+  let requests = 0
+  globalThis.fetch = (async (input: string) => {
+    expect(new URL(input).pathname).toEndWith('/heartrate')
+    requests++
+    return Response.json({ data: [], next_token: null })
+  }) as typeof fetch
+  const driver = new OuraDriver('test-token')
+  for (const collection of ['heartrate', 'ring_battery_level'] as const)
+    await expect(driver.getCollectionPage(collection, { startDate: '2026-09-26', endDate: '2026-10-26' })).rejects.toThrow('30 days')
+  expect(requests).toBe(0)
+  await driver.getCollectionPage('heartrate', { startDate: '2026-09-27', endDate: '2026-10-26' })
+  expect(requests).toBe(1)
+})
+it('reads all heart-rate windows and pages without duplicating their shared boundary', async () => {
+  const windows = new Set<string>()
+  globalThis.fetch = (async (input: string) => {
+    const url = new URL(input)
+    const from = url.searchParams.get('start_datetime')!
+    const to = url.searchParams.get('end_datetime')!
+    expect(Date.parse(to) - Date.parse(from)).toBeLessThanOrEqual(30 * 86400000)
+    windows.add(from)
+    return Response.json({ data: [{ timestamp: url.searchParams.has('next_token') ? to : from, bpm: 60, source: 'awake' }], next_token: url.searchParams.has('next_token') ? null : 'next' })
+  }) as typeof fetch
+  const rows = await new OuraDriver('test-token').getHeartRate({ startDate: '2026-08-01', endDate: '2026-10-01' })
+  expect(windows.size).toBe(3)
+  expect(rows.map(row => row.timestamp)).toEqual(['2026-08-01T00:00:00.000Z', '2026-08-31T00:00:00.000Z', '2026-09-30T00:00:00.000Z'])
+})
