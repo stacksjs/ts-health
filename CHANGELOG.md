@@ -1,5 +1,20 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.32...v0.1.33)
+
+## 🐛 Bug Fixes
+
+- **whoop**: date workouts, nights and recoveries in the wearer's zone ([1a57322](https://github.com/stacksjs/ts-health/commit/1a57322)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **nightscout**: page through ranges longer than one response holds ([30a7fcc](https://github.com/stacksjs/ts-health/commit/30a7fcc)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.33 ([ce18918](https://github.com/stacksjs/ts-health/commit/ce18918)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.31...v0.1.32)
 
 ## 🐛 Bug Fixes
