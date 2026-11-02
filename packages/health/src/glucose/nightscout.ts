@@ -13,8 +13,15 @@ export interface NightscoutConfig {
   fetch?: GlucoseFetch
 }
 
-/** Nightscout caps a page; a day of 5-minute CGM is 288 entries, a month ~8,700. */
+/**
+ * Nightscout caps a page; a day of 5-minute CGM is 288 entries, a month
+ * ~8,700, and a 1-minute sensor or a loop's temp basals far more. A range
+ * holding more is read page by page (`pages`).
+ */
 const PAGE = 10_000
+
+/** A runaway guard: a million rows is years of 1-minute data. */
+const MAX_PAGES = 100
 
 /**
  * Nightscout: the open CGM-in-the-cloud hub most DIY closed loops (Loop, Trio,
@@ -46,6 +53,37 @@ export class NightscoutDriver implements GlucoseDriver {
     return (await requestJson(this.config.fetch, 'Nightscout', url.toString(), { headers })).body
   }
 
+  /**
+   * Every row of a range, however many pages it takes. Nightscout answers a
+   * find newest first and stops at `count`, so one request over 90 days of
+   * CGM returned only the newest 10,000 readings and the older weeks were
+   * never imported. Each next page asks for what is no newer than the oldest
+   * row of the last one (inclusive, since rows can share a time; repeats are
+   * dropped by id later), until a page comes back short.
+   */
+  private async pages(path: string, field: 'date' | 'created_at', range: { start: number, end: number }, what: string): Promise<any[]> {
+    const bound = (value: number) => field === 'date' ? String(value) : new Date(value).toISOString()
+    const rows: any[] = []
+    let upper = bound(range.end)
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const batch = await this.get(path, {
+        [`find[${field}][$gte]`]: bound(range.start),
+        [`find[${field}][$lte]`]: upper,
+        'count': String(PAGE),
+      })
+      if (!Array.isArray(batch)) throw new GlucoseSourceError(`Nightscout returned invalid ${what}`)
+      rows.push(...batch)
+      if (batch.length < PAGE) return rows
+      const oldest = batch[batch.length - 1]?.[field]
+      let next = oldest == null ? '' : String(oldest)
+      // A whole page at one instant: step past it rather than ask again.
+      if (next === upper && field === 'date') next = String(Number(next) - 1)
+      if (!next || next === upper) throw new GlucoseSourceError(`Nightscout returned more ${what} than it can page through`)
+      upper = next
+    }
+    throw new GlucoseSourceError(`Nightscout returned more ${what} than it can page through`)
+  }
+
   /** Confirms the site answers and the token reads; the site's own name when it has one. */
   async verify(): Promise<{ name: string | null, units: 'mg/dL' | 'mmol/L' | null }> {
     const status = await this.get('/api/v1/status.json', {})
@@ -56,12 +94,7 @@ export class NightscoutDriver implements GlucoseDriver {
 
   async getGlucose(range: GlucoseRange): Promise<GlucoseReading[]> {
     const ms = rangeMs(range)
-    const rows = await this.get('/api/v1/entries.json', {
-      'find[date][$gte]': String(ms.start),
-      'find[date][$lte]': String(ms.end),
-      'count': String(PAGE),
-    })
-    if (!Array.isArray(rows)) throw new GlucoseSourceError('Nightscout returned invalid entries')
+    const rows = await this.pages('/api/v1/entries.json', 'date', ms, 'entries')
     const readings: GlucoseReading[] = []
     for (const row of rows) {
       const timestamp = toIso(row?.date ?? row?.dateString)
@@ -83,14 +116,7 @@ export class NightscoutDriver implements GlucoseDriver {
   }
 
   private async treatments(range: GlucoseRange): Promise<any[]> {
-    const ms = rangeMs(range)
-    const rows = await this.get('/api/v1/treatments.json', {
-      'find[created_at][$gte]': new Date(ms.start).toISOString(),
-      'find[created_at][$lte]': new Date(ms.end).toISOString(),
-      'count': String(PAGE),
-    })
-    if (!Array.isArray(rows)) throw new GlucoseSourceError('Nightscout returned invalid treatments')
-    return rows
+    return this.pages('/api/v1/treatments.json', 'created_at', rangeMs(range), 'treatments')
   }
 
   async getInsulin(range: GlucoseRange): Promise<InsulinDose[]> {

@@ -141,6 +141,36 @@ describe('Nightscout', () => {
     expect(await ns.getPumpStatus()).toMatchObject({ device: 'iPhone', reservoirUnits: 120.5, batteryPercent: 75, insulinOnBoard: 1.23, carbsOnBoard: 12, mode: 'Loop', suspended: false })
   })
 
+  it('reads every page of a range longer than one page holds', async () => {
+    // 90 days of 5-minute CGM is ~26,000 entries, and a loop's temp basals as
+    // many treatments: Nightscout answers newest first and stops at `count`.
+    const from = Date.parse('2026-08-01T00:00:00Z')
+    const entries = Array.from({ length: 25_000 }, (_, i) => ({ _id: `e${i}`, type: 'sgv', sgv: 100 + (i % 50), date: from + i * 300_000 }))
+    const treatments = Array.from({ length: 12_000 }, (_, i) => ({ _id: `t${i}`, eventType: 'Temp Basal', absolute: 0.8, duration: 5, created_at: new Date(from + i * 600_000).toISOString() }))
+    const calls: Call[] = []
+    const find = (rows: any[], field: string, url: URL, value: (row: any) => number | string) => {
+      const gte = url.searchParams.get(`find[${field}][$gte]`)!
+      const lte = url.searchParams.get(`find[${field}][$lte]`)!
+      const count = Number(url.searchParams.get('count'))
+      const bound = (raw: string) => field === 'date' ? Number(raw) : raw
+      return rows.filter(row => value(row) >= bound(gte) && value(row) <= bound(lte))
+        .sort((a, b) => value(a) < value(b) ? 1 : value(a) > value(b) ? -1 : 0)
+        .slice(0, count)
+    }
+    const ns = createNightscoutDriver({ url: 'https://ns.example.com', token: 'tok', fetch: fakeFetch((url) => {
+      if (url.pathname.endsWith('/entries.json')) return Response.json(find(entries, 'date', url, row => row.date))
+      if (url.pathname.endsWith('/treatments.json')) return Response.json(find(treatments, 'created_at', url, row => row.created_at))
+      return new Response('', { status: 404 })
+    }, calls) })
+    const all = { start: new Date(from).toISOString(), end: new Date(from + 90 * 86_400_000).toISOString() }
+
+    const glucose = await ns.getGlucose(all)
+    expect(glucose).toHaveLength(25_000)
+    expect(glucose[0]!.timestamp).toBe(new Date(from).toISOString())
+    expect(calls.filter(call => call.url.includes('/entries.json'))).toHaveLength(3)
+    expect(await ns.getInsulin(all)).toHaveLength(12_000)
+  })
+
   it('refuses plain http and a malformed address', () => {
     expect(() => createNightscoutDriver({ url: 'http://ns.example.com' })).toThrow('https')
     expect(() => createNightscoutDriver({ url: 'not a url' })).toThrow('Nightscout')
