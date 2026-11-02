@@ -25,6 +25,23 @@ import type {
 
 const WHOOP_API_BASE = 'https://api.prod.whoop.com/developer'
 
+/**
+ * The wearer's calendar day at an instant, from the offset WHOOP records
+ * with each sleep and workout ("-08:00"). WHOOP's times are UTC, so their
+ * first ten characters are the UTC day: a 6pm run in California was dated
+ * the next day, and a night in Tokyo the day before the morning it ended.
+ * The UTC day only when there is no offset to go by.
+ */
+export function whoopLocalDay(instant: string, offset?: string | null): string {
+  const ms = Date.parse(instant)
+  const text = String(offset ?? '').trim()
+  const match = /^([+-])(\d{2}):?(\d{2})$/.exec(text)
+  if (!Number.isFinite(ms) || (!match && text !== 'Z'))
+    return instant.slice(0, 10)
+  const minutes = match ? (Number(match[2]) * 60 + Number(match[3])) * (match[1] === '-' ? -1 : 1) : 0
+  return new Date(ms + minutes * 60_000).toISOString().slice(0, 10)
+}
+
 interface WhoopListResponse<T> {
   records: T[]
   next_token: string | null
@@ -174,7 +191,7 @@ export class WhoopDriver implements HealthDriver {
       // Retain the old stable identity where WHOOP supplies the migration id.
       id: String(w.activity_v1_id ?? w.id),
       activity: `sport_${w.sport_id}`,
-      day: w.start.slice(0, 10),
+      day: whoopLocalDay(w.start, w.timezone_offset),
       startDatetime: w.start,
       endDatetime: w.end,
       calories: w.score ? Math.round(w.score.kilojoule * 0.239) : undefined,
@@ -190,14 +207,30 @@ export class WhoopDriver implements HealthDriver {
   // Readiness (Recovery)
   // ===========================================================================
 
-  async getReadiness(options?: DateRangeOptions): Promise<DailyReadiness[]> {
+  /**
+   * Recoveries with the day each belongs to: the morning of the sleep it
+   * scores. A recovery carries no offset of its own, and its UTC creation
+   * time put a Tokyo morning's recovery on the day before.
+   */
+  private async recoveries(options?: DateRangeOptions): Promise<Array<WhoopRecovery & { day: string }>> {
     const params = this.buildDateParams(options)
     const raw = await this.fetchAllPages<WhoopRecovery>('/v2/recovery', params)
+    if (!raw.length) return []
+    // From a day earlier: the night a range's first recovery scores began the evening before.
+    const sleepParams = this.buildDateParams(options?.startDate ? { ...options, startDate: new Date(Date.parse(`${options.startDate}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10) } : options)
+    // Best effort: without the sleeps (no sleep scope granted) a recovery keeps its UTC day.
+    const sleeps = await this.fetchAllPages<WhoopSleep>('/v2/activity/sleep', sleepParams).catch(() => [] as WhoopSleep[])
+    const days = new Map(sleeps.filter(sleep => typeof (sleep.end || sleep.start) === 'string').map(sleep => [String(sleep.id), whoopLocalDay(sleep.end || sleep.start, sleep.timezone_offset)]))
+    return raw.map(r => ({ ...r, day: days.get(String(r.sleep_id)) ?? r.created_at.slice(0, 10) }))
+  }
+
+  async getReadiness(options?: DateRangeOptions): Promise<DailyReadiness[]> {
+    const raw = await this.recoveries(options)
 
     return raw
       .filter(r => r.score !== null)
       .map(r => ({
-        day: r.created_at.slice(0, 10),
+        day: r.day,
         score: r.score!.recovery_score,
         contributors: {
           restingHeartRate: r.score!.resting_heart_rate,
@@ -237,13 +270,12 @@ export class WhoopDriver implements HealthDriver {
   // ===========================================================================
 
   async getSpO2(options?: DateRangeOptions): Promise<DailySpO2[]> {
-    const params = this.buildDateParams(options)
-    const raw = await this.fetchAllPages<WhoopRecovery>('/v2/recovery', params)
+    const raw = await this.recoveries(options)
 
     return raw
       .filter(r => r.score?.spo2_percentage != null)
       .map(r => ({
-        day: r.created_at.slice(0, 10),
+        day: r.day,
         averageSpO2: r.score!.spo2_percentage!,
         source: 'whoop' as const,
       }))
@@ -267,13 +299,12 @@ export class WhoopDriver implements HealthDriver {
   // ===========================================================================
 
   async getBodyTemperature(options?: DateRangeOptions): Promise<BodyTemperature[]> {
-    const params = this.buildDateParams(options)
-    const raw = await this.fetchAllPages<WhoopRecovery>('/v2/recovery', params)
+    const raw = await this.recoveries(options)
 
     return raw
       .filter(r => r.score?.skin_temp_celsius != null)
       .map(r => ({
-        day: r.created_at.slice(0, 10),
+        day: r.day,
         celsius: r.score!.skin_temp_celsius!,
         source: 'whoop' as const,
       }))
@@ -317,7 +348,9 @@ export class WhoopDriver implements HealthDriver {
 
   private mapSleepSession(raw: WhoopSleep): SleepSession {
     const score = raw.score
-    const day = raw.start.slice(0, 10)
+    // A night is the morning it ended on, where it was slept, like every
+    // other source's (Oura's day, Fitbit's dateOfSleep, Garmin's calendar date).
+    const day = whoopLocalDay(raw.end || raw.start, raw.timezone_offset)
 
     return {
       id: String(raw.activity_v1_id ?? raw.id),
