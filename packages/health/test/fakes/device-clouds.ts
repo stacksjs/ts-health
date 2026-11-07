@@ -137,7 +137,7 @@ export function startFakeClouds(): FakeClouds {
           return new Response(null, { status: 204 })
         if (path === '/v3/exercises') {
           return Response.json([
-            { id: '2AC312F', upload_time: '2026-10-12T07:40:02.000Z', polar_user: 'https://www.polaraccesslink.com/v3/users/4751', device: 'Polar Vantage V3', start_time: '2026-10-12T08:40:02', start_time_utc_offset: 120, duration: 'PT1H2M3S', calories: 640, distance: 12034.5, heart_rate: { average: 148, maximum: 171 }, training_load: 120.5, sport: 'RUNNING', has_route: true, detailed_sport_info: 'RUNNING_ROAD' },
+            { id: '2AC312F', upload_time: '2026-10-12T07:40:02.000Z', polar_user: 'https://www.polaraccesslink.com/v3/users/4751', device: 'Polar Vantage V3', start_time: '2026-10-12T08:40:02', start_time_utc_offset: 120, duration: 'PT1H2M3S', calories: 640, distance: 12034.5, heart_rate: { average: 148, maximum: 171 }, training_load: 120.5, running_index: 51, vo2_max: 55, sport: 'RUNNING', has_route: true, detailed_sport_info: 'RUNNING_ROAD' },
             { id: 'OLD1', start_time: '2026-09-01T08:00:00', start_time_utc_offset: 120, duration: 'PT30M', sport: 'CYCLING', detailed_sport_info: 'ROAD_BIKING', has_route: false },
           ])
         }

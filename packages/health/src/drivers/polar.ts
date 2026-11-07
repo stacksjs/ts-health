@@ -1,4 +1,4 @@
-import type { DailyActivity, DateRangeOptions, HealthMetric, HeartRateSample, HRVSample, SleepSession } from '../types'
+import type { DailyActivity, DateRangeOptions, FitnessReading, HealthMetric, HeartRateSample, HRVSample, SleepSession } from '../types'
 import type { CloudActivity, CloudActivityFile } from './device-cloud'
 import { BaseDeviceCloudDriver, DeviceCloudError, deviceCloudFailure, fileBytes, numeric, positive, rangeOf, sportKey, ymdUtc } from './device-cloud'
 
@@ -90,7 +90,7 @@ export interface PolarDriverOptions {
 export class PolarAccessLinkDriver extends BaseDeviceCloudDriver {
   readonly name = 'Polar'
   readonly provider: 'polar' = 'polar'
-  readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>(['workouts', 'sleep', 'hrv', 'heartRate', 'dailyActivity'])
+  readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set<HealthMetric>(['workouts', 'sleep', 'hrv', 'heartRate', 'dailyActivity', 'fitness'])
   private readonly baseUrl: string
   private readonly userId: string | undefined
 
@@ -155,6 +155,26 @@ export class PolarAccessLinkDriver extends BaseDeviceCloudDriver {
       .map(exercise => this.toActivity(exercise))
       .filter((activity): activity is CloudActivity => !!activity && Date.parse(activity.startTime) >= from && Date.parse(activity.startTime) <= to)
       .sort((a, b) => Date.parse(b.startTime) - Date.parse(a.startTime))
+  }
+
+  /** AccessLink exercise assessments retain Polar's scale and local exercise date. */
+  async getFitness(options?: DateRangeOptions): Promise<FitnessReading[]> {
+    const exercises = await this.json<PolarExercise[]>('/v3/exercises', [])
+    const readings: FitnessReading[] = []
+    for (const exercise of Array.isArray(exercises) ? exercises : []) {
+      const day = String(exercise.start_time || '').slice(0, 10)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !this.inRange(day, options)) continue
+      for (const [field, metric, label, unit, kind, max] of [
+        ['running_index', 'running_index', 'Running Index', '', 'fitness', 150],
+        ['vo2_max', 'vo2_max', 'VO₂ max', 'ml/kg/min', 'capacity', 100],
+        ['training_load', 'training_load', 'Training load', '', 'load', 100000],
+      ] as const) {
+        const value = (exercise as any)[field] ?? (exercise as any)[field.replace(/_/g, '-')]
+        if (typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= max)
+          readings.push({ day, metric, label, value, unit, kind })
+      }
+    }
+    return readings
   }
 
   private toActivity(exercise: PolarExercise): CloudActivity | null {
