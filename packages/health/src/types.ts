@@ -85,6 +85,7 @@ export type HealthMetric =
   | 'stress'
   | 'bodyTemperature'
   | 'vo2Max'
+  | 'fitness'
   | 'bodyComposition'
   | 'weightMeasurements'
   | 'personalInfo'
@@ -109,6 +110,7 @@ export interface HealthDriver {
   getSpO2(options?: DateRangeOptions): Promise<DailySpO2[]>
   getStress(options?: DateRangeOptions): Promise<DailyStress[]>
   getBodyTemperature(options?: DateRangeOptions): Promise<BodyTemperature[]>
+  getFitness?(options?: DateRangeOptions): Promise<FitnessReading[]>
   getVO2Max(options?: DateRangeOptions): Promise<VO2MaxReading[]>
   getBodyComposition(options?: DateRangeOptions): Promise<BodyComposition[]>
   getWeightMeasurements(options?: DateRangeOptions): Promise<WeightMeasurement[]>
@@ -900,4 +902,16 @@ export interface WaterIntakeInput {
   value: number | string
   unit: string
   sourceName: string
+}
+
+/** Original provider measurements; workload and recovery are never fitness aliases. */
+export interface FitnessReading {
+  day: string
+  metric: string
+  label: string
+  value: number
+  unit: string
+  kind: 'fitness' | 'capacity' | 'load' | 'recovery'
+  /** A current snapshot observed on this day, not a historical measurement. */
+  observed?: boolean
 }

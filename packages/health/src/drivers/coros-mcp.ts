@@ -1,4 +1,4 @@
-import type { DailyActivity, DailySleepSummary, DateRangeOptions, HealthMetric, HeartRateSample, HRVSample } from '../types'
+import type { DailyActivity, DailySleepSummary, DateRangeOptions, FitnessReading, HealthMetric, HeartRateSample, HRVSample } from '../types'
 import type { CloudActivity, CloudActivityFile } from './device-cloud'
 import { BaseDeviceCloudDriver, DeviceCloudAuthError, DeviceCloudError, DeviceCloudRateLimitError, retryAfterSeconds } from './device-cloud'
 
@@ -194,7 +194,7 @@ export function parseCorosMcpActivities(text: string): CloudActivity[] {
 export class CorosMcpDriver extends BaseDeviceCloudDriver {
   readonly name: string = 'COROS'
   readonly provider: 'coros' = 'coros'
-  readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set(['workouts', 'dailyActivity', 'heartRate', 'hrv', 'dailySleep'])
+  readonly supportedMetrics: ReadonlySet<HealthMetric> = new Set(['workouts', 'dailyActivity', 'heartRate', 'hrv', 'dailySleep', 'fitness'])
   readonly mcp: CorosMcpClient
   private daily: { at: number, text: Promise<string> } | null = null
 
@@ -234,6 +234,25 @@ export class CorosMcpDriver extends BaseDeviceCloudDriver {
     const bytes = new Uint8Array(await response.arrayBuffer())
     if (bytes.length < 12 || String.fromCharCode(...bytes.slice(8, 12)) !== '.FIT') throw failure('recording was not a FIT file')
     return { bytes, filename: `coros-${activity.id}.fit`, format: 'fit' }
+  }
+
+  /** Current-only assessments. Historical imports must not call this as a range. */
+  async getFitness(options?: DateRangeOptions): Promise<FitnessReading[]> {
+    const day = options?.endDate || new Date().toISOString().slice(0, 10)
+    if (!/^\d{4}-\d\d-\d\d$/.test(day) || new Date(`${day}T00:00:00Z`).toISOString().slice(0, 10) !== day) throw new RangeError('Expected an observation calendar date')
+    const readings: FitnessReading[] = []
+    for (const [tool, args] of [['queryFitnessAssessmentOverview', {}], ['queryTrainingLoadAssessment', { days: 7 }], ['queryRecoveryStatus', {}]] as const) {
+      try {
+        readings.push(...parseCorosFitness(corosMcpText(await this.mcp.call(tool, args)), day))
+      }
+      catch (error) {
+        if (!readings.length) throw error
+        const partial = new Error('Some COROS assessments could not be read')
+        Object.assign(partial, { name: 'PartialHealthReadError', readings, status: (error as { status?: number }).status })
+        throw partial
+      }
+    }
+    return readings
   }
 
   async getDailyActivity(): Promise<DailyActivity[]> {
@@ -289,4 +308,21 @@ export class CorosMcpDriver extends BaseDeviceCloudDriver {
       return hrv && Number(hrv[1]) > 0 ? [{ timestamp: `${day}T00:00:00Z`, hrv: Number(hrv[1]) }] : []
     })
   }
+}
+
+/** Label-scoped numeric parsing: arbitrary text and profile data never become metrics. */
+export function parseCorosFitness(text: string, day: string): FitnessReading[] {
+  const definitions: Array<[RegExp, string, string, string, FitnessReading['kind']]> = [
+    [/^(?:Running Fitness(?: Score)?|Running Level)\s*:\s*([\d.]+)(?:\s|$)/im, 'running_fitness', 'Running Fitness', '', 'fitness'],
+    [/^Base Fitness\s*:\s*([\d.]+)(?:\s|$)/im, 'base_fitness', 'Base Fitness', '', 'load'],
+    [/^VO[2₂]\s*(?:max|Max)\s*:\s*([\d.]+)(?:\s|$)/im, 'vo2_max', 'VO₂ max', 'ml/kg/min', 'capacity'],
+    [/^(?:Weekly )?Training Load\s*:\s*([\d.]+)(?:\s|$)/im, 'training_load', 'Training load', '', 'load'],
+    [/^(?:Recovery(?: Percentage)?|Recovery Level)\s*:\s*([\d.]+)\s*%/im, 'recovery', 'Recovery', '%', 'recovery'],
+  ]
+  return definitions.flatMap(([pattern, metric, label, unit, kind]) => {
+    const raw = pattern.exec(text)?.[1]
+    const value = raw == null ? NaN : Number(raw)
+    const max = metric === 'recovery' || metric === 'vo2_max' ? 100 : 100000
+    return Number.isFinite(value) && value >= 0 && value <= max ? [{ day, metric, label, unit, kind, value, observed: true }] : []
+  })
 }
