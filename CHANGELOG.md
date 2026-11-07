@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.35...v0.1.36)
+
+## 🐛 Bug Fixes
+
+- preserve exercise assessment identities and formatted COROS labels ([5c389e7](https://github.com/stacksjs/ts-health/commit/5c389e7)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.36 ([3e1a75d](https://github.com/stacksjs/ts-health/commit/3e1a75d)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.34...v0.1.35)
 
 ## ✨ Features
