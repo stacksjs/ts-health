@@ -312,6 +312,8 @@ export class CorosMcpDriver extends BaseDeviceCloudDriver {
 
 /** Label-scoped numeric parsing: arbitrary text and profile data never become metrics. */
 export function parseCorosFitness(text: string, day: string): FitnessReading[] {
+  // MCP responses commonly use Markdown lists and bold field labels.
+  const labeled = text.replace(/^\s*[-*]\s+/gm, '').replace(/\*\*/g, '').replace(/：/g, ':')
   const definitions: Array<[RegExp, string, string, string, FitnessReading['kind']]> = [
     [/^(?:Running Fitness(?: Score)?|Running Level)\s*:\s*([\d.]+)(?:\s|$)/im, 'running_fitness', 'Running Fitness', '', 'fitness'],
     [/^Base Fitness\s*:\s*([\d.]+)(?:\s|$)/im, 'base_fitness', 'Base Fitness', '', 'load'],
@@ -320,7 +322,7 @@ export function parseCorosFitness(text: string, day: string): FitnessReading[] {
     [/^(?:Recovery(?: Percentage)?|Recovery Level)\s*:\s*([\d.]+)\s*%/im, 'recovery', 'Recovery', '%', 'recovery'],
   ]
   return definitions.flatMap(([pattern, metric, label, unit, kind]) => {
-    const raw = pattern.exec(text)?.[1]
+    const raw = pattern.exec(labeled)?.[1]
     const value = raw == null ? NaN : Number(raw)
     const max = metric === 'recovery' || metric === 'vo2_max' ? 100 : 100000
     return Number.isFinite(value) && value >= 0 && value <= max ? [{ day, metric, label, unit, kind, value, observed: true }] : []

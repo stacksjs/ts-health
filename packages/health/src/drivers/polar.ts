@@ -161,17 +161,17 @@ export class PolarAccessLinkDriver extends BaseDeviceCloudDriver {
   async getFitness(options?: DateRangeOptions): Promise<FitnessReading[]> {
     const exercises = await this.json<PolarExercise[]>('/v3/exercises', [])
     const readings: FitnessReading[] = []
-    for (const exercise of Array.isArray(exercises) ? exercises : []) {
+    for (const exercise of (Array.isArray(exercises) ? exercises : []).slice().sort((a, b) => String(a.start_time || '').localeCompare(String(b.start_time || '')))) {
       const day = String(exercise.start_time || '').slice(0, 10)
       if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !this.inRange(day, options)) continue
       for (const [field, metric, label, unit, kind, max] of [
         ['running_index', 'running_index', 'Running Index', '', 'fitness', 150],
         ['vo2_max', 'vo2_max', 'VO₂ max', 'ml/kg/min', 'capacity', 100],
-        ['training_load', 'training_load', 'Training load', '', 'load', 100000],
+        ['training_load', 'training_load', 'Exercise training load', '', 'load', 100000],
       ] as const) {
         const value = (exercise as any)[field] ?? (exercise as any)[field.replace(/_/g, '-')]
         if (typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= max)
-          readings.push({ day, metric, label, value, unit, kind })
+          readings.push({ id: exercise.id, day, metric, label, value, unit, kind })
       }
     }
     return readings

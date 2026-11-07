@@ -106,9 +106,9 @@ describe('Polar AccessLink', () => {
   it('reads original exercise assessments with their local day and range', async () => {
     expect(polar().supportedMetrics.has('fitness')).toBe(true)
     expect(await polar().getFitness(RANGE)).toEqual([
-      { day: '2026-10-12', metric: 'running_index', label: 'Running Index', value: 51, unit: '', kind: 'fitness' },
-      { day: '2026-10-12', metric: 'vo2_max', label: 'VO₂ max', value: 55, unit: 'ml/kg/min', kind: 'capacity' },
-      { day: '2026-10-12', metric: 'training_load', label: 'Training load', value: 120.5, unit: '', kind: 'load' },
+      { id: '2AC312F', day: '2026-10-12', metric: 'running_index', label: 'Running Index', value: 51, unit: '', kind: 'fitness' },
+      { id: '2AC312F', day: '2026-10-12', metric: 'vo2_max', label: 'VO₂ max', value: 55, unit: 'ml/kg/min', kind: 'capacity' },
+      { id: '2AC312F', day: '2026-10-12', metric: 'training_load', label: 'Exercise training load', value: 120.5, unit: '', kind: 'load' },
     ])
     expect(await polar().getFitness({ startDate: '2026-10-13', endDate: '2026-10-14' })).toEqual([])
   })

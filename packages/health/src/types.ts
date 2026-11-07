@@ -906,6 +906,8 @@ export interface WaterIntakeInput {
 
 /** Original provider measurements; workload and recovery are never fitness aliases. */
 export interface FitnessReading {
+  /** Original observation or exercise identity, for lossless same-day archives. */
+  id?: string
   day: string
   metric: string
   label: string

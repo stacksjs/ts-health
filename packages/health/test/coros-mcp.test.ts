@@ -74,5 +74,6 @@ test('fitness assessments retain original meanings and never copy profile identi
   expect(rows.map(row => [row.metric, row.value, row.kind])).toEqual([['running_fitness', 82.5, 'fitness'], ['base_fitness', 60, 'load'], ['vo2_max', 55.2, 'capacity'], ['training_load', 0, 'load'], ['recovery', 80, 'recovery']])
   expect(rows.every(row => row.observed && row.day === '2026-11-07')).toBe(true)
   expect(JSON.stringify(rows)).not.toContain('secret-account')
+  expect(parseCorosFitness('- **Running Fitness**: 82.5\n- **Recovery**: 80%', '2026-11-07').map(row => row.value)).toEqual([82.5, 80])
   expect(parseCorosFitness('unrelated 88.5 and VO2max: not-a-number', '2026-11-07')).toEqual([])
 })
