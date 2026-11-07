@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.34...v0.1.35)
+
+## ✨ Features
+
+- sync original Polar exercise fitness assessments ([e288982](https://github.com/stacksjs/ts-health/commit/e288982)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.35 ([ad2aa89](https://github.com/stacksjs/ts-health/commit/ad2aa89)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.33...v0.1.34)
 
 ## ✨ Features
