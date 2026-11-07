@@ -1,5 +1,19 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.33...v0.1.34)
+
+## ✨ Features
+
+- expose original COROS fitness and workload assessments ([a930228](https://github.com/stacksjs/ts-health/commit/a930228)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🔧 Chores
+
+- release v0.1.34 ([c0ddecb](https://github.com/stacksjs/ts-health/commit/c0ddecb)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.32...v0.1.33)
 
 ## 🐛 Bug Fixes
