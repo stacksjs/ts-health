@@ -79,8 +79,7 @@ export interface CorosMcpResult { content?: Array<{ type: string, text?: string 
 
 /** COROS currently wraps formatted text in a JSON string inside MCP content. */
 export function corosMcpText(result: CorosMcpResult): string {
-  if (result.isError) throw failure('tool refused the request')
-  return (result.content || []).filter(item => item.type === 'text').map((item) => {
+  const text = (result.content || []).filter(item => item.type === 'text').map((item) => {
     let text = item.text || ''
     try {
       const value = JSON.parse(text)
@@ -89,6 +88,13 @@ export function corosMcpText(result: CorosMcpResult): string {
     catch { /* Some server versions return text directly. */ }
     return text
   }).join('\n')
+  // COROS can report its account-session failure in an HTTP 200 tool result
+  // with isError=false. Never interpret that diagnostic as empty health data
+  // or a changed activity format, and never copy the provider body to logs.
+  if (/^\s*Client authentication\b[^\n]*\b(?:missing|expired|invalid)\b/i.test(text))
+    throw new DeviceCloudAuthError('COROS MCP sign-in expired; reconnect COROS', { provider: 'coros', status: 401 })
+  if (result.isError) throw failure('tool refused the request')
+  return text
 }
 
 export class CorosMcpClient {
@@ -138,6 +144,7 @@ export class CorosMcpClient {
     // Never retry writes at the transport layer: a lost response can mean
     // the workout was saved. Callers reconcile their own stable reference.
     const result = await this.rpc('tools/call', { name, arguments: args }) as CorosMcpResult
+    corosMcpText(result)
     if (result.isError) throw failure(`${name} was refused`)
     return result
   }
@@ -175,7 +182,8 @@ export function corosMcpDays(text: string): Array<{ day: string, text: string }>
 /** A conservative parser: an unrecognized record must not silently vanish. */
 export function parseCorosMcpActivities(text: string): CloudActivity[] {
   if (/^No sport records found\b/.test(text.trim())) return []
-  const blocks = text.split(/\n(?=\d+\.\s)/).slice(1)
+  const firstRecord = /^\d+\.\s/m.exec(text)
+  const blocks = firstRecord ? text.slice(firstRecord.index).split(/\r?\n(?=\d+\.\s)/) : []
   if (!blocks.length) throw failure('activity list format changed; no data imported')
   const sports: Record<number, string> = { 100: 'running', 101: 'treadmill_running', 102: 'trail_running', 103: 'track_running', 104: 'hiking', 200: 'cycling', 201: 'indoor_cycling', 203: 'gravel_cycling', 204: 'mountain_biking', 300: 'pool_swimming', 301: 'open_water_swimming', 402: 'strength_training', 900: 'walking' }
   return blocks.map((block) => {

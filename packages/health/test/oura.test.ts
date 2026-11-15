@@ -140,7 +140,7 @@ describe('Oura heart rate', () => {
         ? { data: [{ timestamp: '2026-10-10T00:10:00+00:00', bpm: 51, source: 'rest' }], next_token: null }
         : { data: [{ timestamp: '2026-10-10T00:05:00+00:00', bpm: 50, source: 'rest' }], next_token: 'page-2' })
     }) as typeof fetch
-    const samples = await new OuraDriver('test-token').getHeartRate({ startDate: '2026-10-10' })
+    const samples = await new OuraDriver('test-token').getHeartRate({ startDate: '2026-10-10', endDate: '2026-10-10' })
     expect(calls).toBe(2)
     expect(samples.map(sample => sample.bpm)).toEqual([50, 51])
   })

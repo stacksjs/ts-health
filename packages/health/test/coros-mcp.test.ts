@@ -3,13 +3,15 @@ import { CorosMcpClient, CorosMcpDriver, corosMcpAuthorizeUrl, corosMcpDays, cor
 
 const calls: any[] = []
 let failed = false
+let authenticationFailed = false
 const server = Bun.serve({ port: 0, async fetch(request) {
   expect(request.headers.get('authorization')).toBe('Bearer test-token')
   const body = await request.json() as any
   calls.push(body)
   if (body.method === 'notifications/initialized') return new Response(null, { status: 202 })
   if (failed) return Response.json({ access_token: 'never-print-me' }, { status: 429, headers: { 'Retry-After': '42' } })
-  const text = body.params?.name === 'queryDailyHealthData' ? 'Daily Health Data — Last 7 days | HRV Baseline: 42 ms\n\n--- 20261016 ---\nSteps: 0 | Calories: 0 kcal | Exercise: 0 min'
+  const text = authenticationFailed ? 'Client authentication is missing, expired, or invalid. Diagnostic advice: Verify COROS login status.'
+    : body.params?.name === 'queryDailyHealthData' ? 'Daily Health Data — Last 7 days | HRV Baseline: 42 ms\n\n--- 20261016 ---\nSteps: 0 | Calories: 0 kcal | Exercise: 0 min'
     : body.params?.name === 'querySleepOverview' ? 'Sleep Overview\n\n2026-10-15\nSleep Score: 91\nDaily Sleep: 7h 57min (incl. naps)'
       : body.params?.name === 'queryFitnessAssessmentOverview' ? 'Running Fitness: 82.5\nVO2max: 55.2 ml/kg/min'
         : body.params?.name === 'queryTrainingLoadAssessment' ? 'Base Fitness: 60\nTraining Load: 0'
@@ -56,6 +58,12 @@ describe('COROS public MCP', () => {
     expect(rows[0]?.durationSeconds).toBe(3600)
     expect(rows[0]?.distanceMeters).toBe(10200)
   })
+  test('imports every numbered record when the activity list has no heading', () => {
+    const first = '1. Running — 2026-10-21\nlabelId: recorded-1\nsportType: 100\nstartTimestamp: 1792598400000'
+    const second = '2. Cycling — 2026-10-22\nlabelId: recorded-2\nsportType: 200\nstartTimestamp: 1792684800000'
+    expect(parseCorosMcpActivities(first).map(row => row.id)).toEqual(['recorded-1'])
+    expect(parseCorosMcpActivities(`${first}\n${second}`).map(row => row.id)).toEqual(['recorded-1', 'recorded-2'])
+  })
   test('never leaks provider response bodies and exposes retry timing', async () => {
     failed = true
     const client = new CorosMcpClient('test-token', { region: 'us', endpoint: server.url.toString() })
@@ -66,6 +74,15 @@ describe('COROS public MCP', () => {
       expect(error.message).not.toContain('never-print-me')
     }
     finally { failed = false }
+  })
+  test('classifies a successful MCP envelope containing a login failure before parsing health data', async () => {
+    authenticationFailed = true
+    try {
+      const driver = new CorosMcpDriver('test-token', { region: 'us', endpoint: server.url.toString() })
+      await expect(driver.listActivities()).rejects.toMatchObject({ name: 'DeviceCloudAuthError', status: 401 })
+      await expect(driver.getDailyActivity()).rejects.toMatchObject({ name: 'DeviceCloudAuthError', status: 401 })
+    }
+    finally { authenticationFailed = false }
   })
 })
 
