@@ -42,9 +42,11 @@ jobs:
 
       - name: Publish to npm
         working-directory: packages/health
-        run: bun publish --access public
+        # As the other libraries publish: Pantry signs the upload with this
+        # job's identity (provenance). A bare token upload is refused by npm.
+        run: pantry publish --npm --access public
         env:
-          BUN_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Verify registry availability
         working-directory: packages/health
