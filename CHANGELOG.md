@@ -1,5 +1,16 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.37...v0.1.38)
+
+## 🐛 Bug Fixes
+
+- distinguish COROS data access failures from revoked OAuth ([f79b735](https://github.com/stacksjs/ts-health/commit/f79b735)) _(by Chris Breuer)_
+
+## Contributors
+
+- _Chris_
+- _Chris Breuer_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.36...v0.1.37)
 
 ## 🐛 Bug Fixes
