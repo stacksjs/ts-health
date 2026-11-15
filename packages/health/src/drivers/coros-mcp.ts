@@ -1,6 +1,6 @@
 import type { DailyActivity, DailySleepSummary, DateRangeOptions, FitnessReading, HealthMetric, HeartRateSample, HRVSample } from '../types'
 import type { CloudActivity, CloudActivityFile } from './device-cloud'
-import { BaseDeviceCloudDriver, DeviceCloudAuthError, DeviceCloudError, DeviceCloudRateLimitError, retryAfterSeconds } from './device-cloud'
+import { BaseDeviceCloudDriver, DeviceCloudAccountError, DeviceCloudAuthError, DeviceCloudError, DeviceCloudRateLimitError, retryAfterSeconds } from './device-cloud'
 
 export type CorosMcpRegion = 'us' | 'eu'
 export const COROS_MCP_SCOPES = 'openid mcp.tools offline_access'
@@ -95,7 +95,7 @@ export function corosMcpText(result: CorosMcpResult): string {
   // https://github.com/coroslab/COROS-MCP/issues/22
   // Only an actual HTTP 401/403 above proves that OAuth was refused.
   if (/^\s*Client authentication\b[^\n]*\b(?:missing|expired|invalid)\b/i.test(text))
-    throw failure('account data access could not be verified')
+    throw new DeviceCloudAccountError('COROS MCP account data access could not be verified', { provider: 'coros', status: 0 })
   if (result.isError) throw failure('tool refused the request')
   return text
 }

@@ -31,7 +31,9 @@ import type {
  * where the maker offers them.
  *
  * Errors are typed so a caller can tell a rate limit (stop, try later) from a
- * revoked sign-in (ask the person to reconnect) from anything else.
+ * revoked sign-in (ask the person to reconnect) from an account the provider
+ * will not serve despite a good sign-in (nothing to redo here) from anything
+ * else.
  */
 
 export type DeviceCloudProvider = 'polar' | 'suunto' | 'coros' | 'wahoo'
@@ -128,6 +130,19 @@ export class DeviceCloudAuthError extends DeviceCloudError {
   constructor(message: string, details: DeviceCloudErrorDetails) {
     super(message, details)
     this.name = 'DeviceCloudAuthError'
+  }
+}
+
+/**
+ * The provider accepted the sign-in and then would not serve this account's
+ * data: a fault on its side of the grant. Reconnecting does not help, and it
+ * is not a rate limit, so the caller stops reading and says the provider has
+ * to sort the account out.
+ */
+export class DeviceCloudAccountError extends DeviceCloudError {
+  constructor(message: string, details: DeviceCloudErrorDetails) {
+    super(message, details)
+    this.name = 'DeviceCloudAccountError'
   }
 }
 

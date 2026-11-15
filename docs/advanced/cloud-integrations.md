@@ -164,4 +164,4 @@ if (verifyDeviceWebhook('polar', rawBody, request.headers, { signatureSecret }))
   console.log(parseDeviceWebhook('polar', rawBody)?.providerUserIds)
 ```
 
-`refreshDeviceToken` keeps Suunto, COROS and Wahoo tokens alive (Polar's do not expire). COROS extends the current token rather than issuing a new one, so pass it in. Errors are typed: `DeviceCloudRateLimitError` (with `retryAfterSeconds`) means stop and try later, `DeviceCloudAuthError` means the person has to connect again.
+`refreshDeviceToken` keeps Suunto, COROS and Wahoo tokens alive (Polar's do not expire). COROS extends the current token rather than issuing a new one, so pass it in. Errors are typed: `DeviceCloudRateLimitError` (with `retryAfterSeconds`) means stop and try later, `DeviceCloudAuthError` means the person has to connect again, and `DeviceCloudAccountError` means the provider accepted the sign-in but will not serve the account's data (COROS answers this way inside a successful response), so reconnecting does not help.

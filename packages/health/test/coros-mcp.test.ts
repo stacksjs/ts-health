@@ -81,8 +81,8 @@ describe('COROS public MCP', () => {
     authenticationFailed = true
     try {
       const driver = new CorosMcpDriver('test-token', { region: 'us', endpoint: server.url.toString() })
-      await expect(driver.listActivities()).rejects.toMatchObject({ name: 'DeviceCloudError', status: 0, message: 'COROS MCP account data access could not be verified' })
-      await expect(driver.getDailyActivity()).rejects.toMatchObject({ name: 'DeviceCloudError', status: 0, message: 'COROS MCP account data access could not be verified' })
+      await expect(driver.listActivities()).rejects.toMatchObject({ name: 'DeviceCloudAccountError', provider: 'coros', status: 0, message: 'COROS MCP account data access could not be verified' })
+      await expect(driver.getDailyActivity()).rejects.toMatchObject({ name: 'DeviceCloudAccountError', provider: 'coros', status: 0, message: 'COROS MCP account data access could not be verified' })
     }
     finally { authenticationFailed = false }
   })
