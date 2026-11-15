@@ -1,5 +1,16 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.38...v0.1.39)
+
+## 🐛 Bug Fixes
+
+- type the COROS account data failure as DeviceCloudAccountError ([e8f14fd](https://github.com/stacksjs/ts-health/commit/e8f14fd)) _(by Chris Breuer)_
+
+## Contributors
+
+- _Chris_
+- _Chris Breuer_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.37...v0.1.38)
 
 ## 🐛 Bug Fixes
