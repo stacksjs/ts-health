@@ -1,5 +1,16 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.39...v0.1.40)
+
+## 💚 Continuous Integration
+
+- **release**: publish through Pantry like the other libraries ([ca3db4b](https://github.com/stacksjs/ts-health/commit/ca3db4b)) _(by Chris Breuer)_
+
+## Contributors
+
+- _Chris_
+- _Chris Breuer_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.38...v0.1.39)
 
 ## 🐛 Bug Fixes
