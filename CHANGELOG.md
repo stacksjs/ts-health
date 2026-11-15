@@ -1,5 +1,16 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.40...v0.1.41)
+
+## 🐛 Bug Fixes
+
+- **oura**: keep confirmed naps separate from main sleep ([1f1d6ba](https://github.com/stacksjs/ts-health/commit/1f1d6ba)) _(by Chris Breuer)_
+
+## Contributors
+
+- _Chris_
+- _Chris Breuer_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.39...v0.1.40)
 
 ## 💚 Continuous Integration
