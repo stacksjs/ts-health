@@ -26,6 +26,15 @@ const night = {
 }
 
 describe('Oura daily recovery', () => {
+  it('keeps confirmed naps separate from the main night, including Oura sleep and late_nap types', async () => {
+    mockOura([{ ...night, id: 'nap', type: 'sleep', bedtime_start: '2026-10-09T13:00:00Z', bedtime_end: '2026-10-09T14:00:00Z', total_sleep_duration: 2400 }])
+    const driver = new OuraDriver('test-token')
+    expect((await driver.getSleep())[0]!.type).toBe('nap')
+    const daily = await driver.getDailyHealth()
+    expect(daily.days[0]!.sleepHours).toBeUndefined()
+    expect(daily.days[0]!.observations!.sleep).toHaveLength(1)
+  })
+
   it('keeps the main sleep, reported day, true sleep score and measured resting HR', async () => {
     const requests = mockOura([night, { ...night, id: 'nap', type: 'late_nap', total_sleep_duration: 1800, average_hrv: 20, lowest_heart_rate: 65 }], {
       daily_sleep: [{ day: night.day, score: 81 }],

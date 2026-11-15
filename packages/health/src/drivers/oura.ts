@@ -233,7 +233,7 @@ export class OuraDriver implements HealthDriver {
       }
       const nights = new Map<string, OuraSleepResponse>()
       for (const row of rows) {
-        if (row.type !== 'long_sleep' && row.type !== 'sleep') continue
+        if (row.type !== 'long_sleep') continue
         const previous = nights.get(row.day)
         if (!previous || row.total_sleep_duration > previous.total_sleep_duration) nights.set(row.day, row)
       }
@@ -686,7 +686,7 @@ export class OuraDriver implements HealthDriver {
   private mapSleepType(type: OuraSleepResponse['type']): SleepSession['type'] {
     switch (type) {
       case 'long_sleep': return 'long_sleep'
-      case 'sleep': return 'long_sleep'
+      case 'sleep': return 'nap'
       case 'late_nap': return 'nap'
       case 'rest': return 'rest'
       default: return 'unknown'
