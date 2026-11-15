@@ -1,5 +1,16 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.36...v0.1.37)
+
+## 🐛 Bug Fixes
+
+- recognize COROS account diagnostics before parsing health data ([32c06ff](https://github.com/stacksjs/ts-health/commit/32c06ff)) _(by Chris Breuer)_
+
+## Contributors
+
+- _Chris_
+- _Chris Breuer_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.35...v0.1.36)
 
 ## 🐛 Bug Fixes
