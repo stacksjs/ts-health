@@ -91,8 +91,11 @@ export function corosMcpText(result: CorosMcpResult): string {
   // COROS can report its account-session failure in an HTTP 200 tool result
   // with isError=false. Never interpret that diagnostic as empty health data
   // or a changed activity format, and never copy the provider body to logs.
+  // Fresh grants can hit this downstream identity failure too:
+  // https://github.com/coroslab/COROS-MCP/issues/22
+  // Only an actual HTTP 401/403 above proves that OAuth was refused.
   if (/^\s*Client authentication\b[^\n]*\b(?:missing|expired|invalid)\b/i.test(text))
-    throw new DeviceCloudAuthError('COROS MCP sign-in expired; reconnect COROS', { provider: 'coros', status: 401 })
+    throw failure('account data access could not be verified')
   if (result.isError) throw failure('tool refused the request')
   return text
 }

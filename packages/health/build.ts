@@ -1,5 +1,9 @@
 /* eslint-disable ts/no-top-level-await */
 import { dts } from 'bun-plugin-dtsx'
+import { rm } from 'node:fs/promises'
+
+// Release archives must contain only output from the current source tree.
+await rm(new URL('./dist/', import.meta.url), { recursive: true, force: true })
 
 const entrypoints = [
   'src/index.ts',

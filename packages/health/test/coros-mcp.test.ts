@@ -4,11 +4,13 @@ import { CorosMcpClient, CorosMcpDriver, corosMcpAuthorizeUrl, corosMcpDays, cor
 const calls: any[] = []
 let failed = false
 let authenticationFailed = false
+let unauthorized = false
 const server = Bun.serve({ port: 0, async fetch(request) {
   expect(request.headers.get('authorization')).toBe('Bearer test-token')
   const body = await request.json() as any
   calls.push(body)
   if (body.method === 'notifications/initialized') return new Response(null, { status: 202 })
+  if (unauthorized) return Response.json({ token: 'never-print-me' }, { status: 401 })
   if (failed) return Response.json({ access_token: 'never-print-me' }, { status: 429, headers: { 'Retry-After': '42' } })
   const text = authenticationFailed ? 'Client authentication is missing, expired, or invalid. Diagnostic advice: Verify COROS login status.'
     : body.params?.name === 'queryDailyHealthData' ? 'Daily Health Data — Last 7 days | HRV Baseline: 42 ms\n\n--- 20261016 ---\nSteps: 0 | Calories: 0 kcal | Exercise: 0 min'
@@ -75,14 +77,22 @@ describe('COROS public MCP', () => {
     }
     finally { failed = false }
   })
-  test('classifies a successful MCP envelope containing a login failure before parsing health data', async () => {
+  test('reports a provider identity failure without claiming the OAuth grant was revoked', async () => {
     authenticationFailed = true
     try {
       const driver = new CorosMcpDriver('test-token', { region: 'us', endpoint: server.url.toString() })
-      await expect(driver.listActivities()).rejects.toMatchObject({ name: 'DeviceCloudAuthError', status: 401 })
-      await expect(driver.getDailyActivity()).rejects.toMatchObject({ name: 'DeviceCloudAuthError', status: 401 })
+      await expect(driver.listActivities()).rejects.toMatchObject({ name: 'DeviceCloudError', status: 0, message: 'COROS MCP account data access could not be verified' })
+      await expect(driver.getDailyActivity()).rejects.toMatchObject({ name: 'DeviceCloudError', status: 0, message: 'COROS MCP account data access could not be verified' })
     }
     finally { authenticationFailed = false }
+  })
+  test('still identifies an actual HTTP authentication refusal as a rejected sign-in', async () => {
+    unauthorized = true
+    try {
+      const driver = new CorosMcpDriver('test-token', { region: 'us', endpoint: server.url.toString() })
+      await expect(driver.listActivities()).rejects.toMatchObject({ name: 'DeviceCloudAuthError', status: 401, message: 'COROS MCP sign-in expired' })
+    }
+    finally { unauthorized = false }
   })
 })
 
