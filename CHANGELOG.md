@@ -1,5 +1,20 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.41...v0.1.42)
+
+## ✨ Features
+
+- add the Google Health API driver ([a45f902](https://github.com/stacksjs/ts-health/commit/a45f902)) _(by Chris Breuer)_
+
+## 💚 Continuous Integration
+
+- name the Pantry publish token PANTRY_TOKEN ([8e6ec3d](https://github.com/stacksjs/ts-health/commit/8e6ec3d)) _(by Chris)_
+
+## Contributors
+
+- _Chris_
+- _Chris Breuer_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.40...v0.1.41)
 
 ## 🐛 Bug Fixes
