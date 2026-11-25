@@ -46,7 +46,7 @@ export type HealthOptions = Partial<HealthConfig>
 // Platform & Auth Types
 // ============================================================================
 
-export type HealthPlatformType = 'oura' | 'whoop' | 'apple_health' | 'fitbit' | 'garmin' | 'trainingpeaks' | 'withings' | 'renpho' | 'polar' | 'suunto' | 'coros' | 'wahoo' | 'larq' | 'eight_sleep'
+export type HealthPlatformType = 'oura' | 'whoop' | 'apple_health' | 'fitbit' | 'google_health' | 'garmin' | 'trainingpeaks' | 'withings' | 'renpho' | 'polar' | 'suunto' | 'coros' | 'wahoo' | 'larq' | 'eight_sleep'
 
 export interface AuthConfig {
   accessToken?: string
@@ -80,6 +80,8 @@ export type HealthMetric =
   | 'workouts'
   | 'readiness'
   | 'heartRate'
+  | 'restingHeartRate'
+  | 'respiratoryRate'
   | 'hrv'
   | 'spo2'
   | 'stress'
