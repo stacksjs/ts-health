@@ -25,6 +25,7 @@ export const GOOGLE_HEALTH_SCOPES = {
   metrics: 'https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly',
   nutrition: 'https://www.googleapis.com/auth/googlehealth.nutrition.readonly',
 } as const
+export const GOOGLE_HEALTH_ACTIVITY_WRITE_SCOPE = 'https://www.googleapis.com/auth/googlehealth.activity_and_fitness.writeonly'
 
 const families = {
   [GOOGLE_HEALTH_SCOPES.activity]: ['dailyActivity', 'workouts', 'vo2Max'],
@@ -43,6 +44,29 @@ export interface GoogleHealthOptions {
 export interface GoogleHealthIdentity {
   healthUserId: string
   legacyUserId?: string
+}
+
+export interface GoogleHealthExercise {
+  startTime: string
+  endTime: string
+  startOffsetSeconds: number
+  endOffsetSeconds: number
+  exerciseType: string
+  displayName?: string
+  activeSeconds?: number
+  distanceMeters?: number
+  elevationGainMeters?: number
+  calories?: number
+  averageHeartRate?: number
+}
+
+interface ExercisePoint {
+  name?: string
+  exercise?: { interval?: SessionInterval, exerciseType?: string }
+}
+
+export class GoogleHealthUnconfirmedWriteError extends Error {
+  constructor() { super('Google Health has not confirmed the exercise write') }
 }
 
 export class GoogleHealthError extends Error {
@@ -138,6 +162,8 @@ export class GoogleHealthDriver implements HealthDriver {
 
   isAuthenticated(): boolean { return !!this.accessToken }
 
+  canWriteExercise(): boolean { return this.granted.has(GOOGLE_HEALTH_ACTIVITY_WRITE_SCOPE) }
+
   private async request<T>(path: string, params?: URLSearchParams, body?: object): Promise<T> {
     const response = await this.send(`${this.baseUrl}/users/me/${path}${params ? `?${params}` : ''}`, {
       headers: { Authorization: `Bearer ${this.accessToken}`, Accept: 'application/json', ...(body ? { 'Content-Type': 'application/json' } : {}) },
@@ -157,6 +183,56 @@ export class GoogleHealthDriver implements HealthDriver {
     const identity = await this.request<GoogleHealthIdentity>('identity')
     if (typeof identity.healthUserId !== 'string' || !identity.healthUserId) throw new Error('Google Health did not return an account ID')
     return identity
+  }
+
+  /** Google assigns exercise IDs. A lost response must be reconciled before another create. */
+  async createExercise(exercise: GoogleHealthExercise): Promise<string> {
+    if (!this.canWriteExercise()) throw new GoogleHealthError(403, 'INSUFFICIENT_SCOPE')
+    const { startTime, endTime, startOffsetSeconds, endOffsetSeconds, exerciseType } = exercise
+    const elapsed = (Date.parse(endTime) - Date.parse(startTime)) / 1000
+    if (!(elapsed > 0) || ![startOffsetSeconds, endOffsetSeconds].every(offset => Number.isInteger(offset) && Math.abs(offset) <= 18 * 3600))
+      throw new RangeError('Invalid Google Health exercise interval')
+    const metricsSummary: Record<string, number | string> = {}
+    const metrics = [
+      ['caloriesKcal', exercise.calories, 1],
+      ['distanceMillimeters', exercise.distanceMeters, 1000],
+      ['elevationGainMillimeters', exercise.elevationGainMeters, 1000],
+    ] as const
+    for (const [name, value, scale] of metrics)
+      if (value !== undefined && Number.isFinite(value) && value >= 0) metricsSummary[name] = value * scale
+    const heartRate = positive(exercise.averageHeartRate)
+    if (heartRate !== undefined) metricsSummary.averageHeartRateBeatsPerMinute = String(Math.round(heartRate))
+    const active = positive(exercise.activeSeconds)
+    const operation = await this.request<{ done?: boolean, error?: unknown, response?: ExercisePoint }>('dataTypes/exercise/dataPoints', undefined, {
+      dataSource: { recordingMethod: 'ACTIVELY_MEASURED', platform: 'GOOGLE_WEB_API' },
+      exercise: {
+        interval: { startTime, endTime, startUtcOffset: `${startOffsetSeconds}s`, endUtcOffset: `${endOffsetSeconds}s` },
+        exerciseType,
+        metricsSummary,
+        ...(exerciseType === 'OTHER' && exercise.displayName ? { displayName: exercise.displayName } : {}),
+        ...(active !== undefined && active <= elapsed ? { activeDuration: `${active}s` } : {}),
+      },
+    })
+    const name = operation.response?.name
+    if (!operation.done || operation.error || !name) throw new GoogleHealthUnconfirmedWriteError()
+    return name
+  }
+
+  async findWrittenExercise(exercise: Pick<GoogleHealthExercise, 'startTime' | 'endTime' | 'startOffsetSeconds' | 'exerciseType'>): Promise<string | undefined> {
+    const start = Date.parse(exercise.startTime)
+    const end = Date.parse(exercise.endTime)
+    if (!(end > start) || !Number.isInteger(exercise.startOffsetSeconds)) throw new RangeError('Invalid Google Health exercise interval')
+    const civil = start + exercise.startOffsetSeconds * 1000
+    const firstSecond = Math.floor(civil / 1000) * 1000
+    const from = new Date(firstSecond).toISOString().slice(0, 19)
+    const until = new Date(firstSecond + 1000).toISOString().slice(0, 19)
+    const filter = `exercise.interval.civil_start_time >= "${from}" AND exercise.interval.civil_start_time < "${until}"`
+    const rows = await this.pages<ExercisePoint>(pageToken => this.request('dataTypes/exercise/dataPoints',
+      new URLSearchParams({ filter, dataSourceFamily: 'users/me/dataSourceFamilies/self-sources', pageSize: '25', ...(pageToken ? { pageToken } : {}) })))
+    const matches = rows.filter(row => row.name && row.exercise?.exerciseType === exercise.exerciseType
+      && Date.parse(row.exercise.interval?.startTime ?? '') === start && Date.parse(row.exercise.interval?.endTime ?? '') === end)
+    if (matches.length > 1) throw new GoogleHealthUnconfirmedWriteError()
+    return matches[0]?.name
   }
 
   private async pages<T>(load: (pageToken?: string) => Promise<RecordPage<T>>): Promise<T[]> {
@@ -258,8 +334,13 @@ export class GoogleHealthDriver implements HealthDriver {
       exerciseMetadata?: { hasGps?: boolean }
       metricsSummary?: { caloriesKcal?: number, distanceMillimeters?: number, averageHeartRateBeatsPerMinute?: string, elevationGainMillimeters?: number }
     }
-    const rows = await this.reconcile<{ dataPointName?: string, exercise?: Exercise }>('exercise', 'interval.civil_start_time', options)
-    return rows.flatMap(({ dataPointName, exercise }) => {
+    const rows = await this.reconcile<{
+      name?: string
+      dataPointName?: string
+      dataSource?: { application?: { googleWebClientId?: string } }
+      exercise?: Exercise
+    }>('exercise', 'interval.civil_start_time', options)
+    return rows.flatMap(({ name, dataPointName, dataSource, exercise }) => {
       const times = sessionDates(exercise?.interval)
       if (!exercise || !times) return []
       const metrics = exercise.metricsSummary
@@ -267,11 +348,17 @@ export class GoogleHealthDriver implements HealthDriver {
       const elevation = number(metrics?.elevationGainMillimeters)
       const active = positive(exercise.activeDuration?.replace(/s$/, ''))
       return [{
-        id: dataPointName?.split('/').at(-1) || times.start, activity: exercise.exerciseType?.toLowerCase() || 'workout',
+        id: (name ?? dataPointName)?.split('/').at(-1) || times.start, activity: exercise.exerciseType?.toLowerCase() || 'workout',
         day: times.startDay, startDatetime: times.start, endDatetime: times.end, label: exercise.displayName,
         calories: number(metrics?.caloriesKcal), averageHeartRate: positive(metrics?.averageHeartRateBeatsPerMinute),
         ...(distance === undefined ? {} : { distance: distance / 1000 }),
-        details: { ...metrics, ...(elevation === undefined ? {} : { elevationGainMeters: elevation / 1000 }), ...(active === undefined ? {} : { activeDurationSeconds: active }), hasGps: exercise.exerciseMetadata?.hasGps === true },
+        details: {
+          ...metrics,
+          ...(elevation === undefined ? {} : { elevationGainMeters: elevation / 1000 }),
+          ...(active === undefined ? {} : { activeDurationSeconds: active }),
+          ...(dataSource?.application?.googleWebClientId ? { googleWebClientId: dataSource.application.googleWebClientId } : {}),
+          hasGps: exercise.exerciseMetadata?.hasGps === true,
+        },
         source,
       }]
     })

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { createGoogleHealthDriver, GOOGLE_HEALTH_SCOPES } from '../src'
+import { createGoogleHealthDriver, GOOGLE_HEALTH_ACTIVITY_WRITE_SCOPE, GOOGLE_HEALTH_SCOPES } from '../src'
 
 const range = { startDate: '2026-11-01', endDate: '2026-11-01' }
 const civil = (day: number) => ({ date: { year: 2026, month: 11, day } })
@@ -17,6 +17,43 @@ describe('Google Health', () => {
     }) })
     expect(await driver.getIdentity()).toEqual({ healthUserId: 'health-user', legacyUserId: 'FIT123' })
     expect([...driver.supportedMetrics]).toEqual(['sleep'])
+  })
+
+  test('writes exercise summaries with the activity write grant and returns Google’s resource name', async () => {
+    const exercise = { startTime: bounds.startTime, endTime: bounds.endTime, startOffsetSeconds: -25200, endOffsetSeconds: -28800, exerciseType: 'RUNNING', distanceMeters: 5200, averageHeartRate: 143 }
+    const name = 'users/u/dataTypes/exercise/dataPoints/recorded'
+    const write = createGoogleHealthDriver('test', { scopes: GOOGLE_HEALTH_ACTIVITY_WRITE_SCOPE, fetch: fake((url, init) => {
+      expect(url.pathname).toBe('/v4/users/me/dataTypes/exercise/dataPoints')
+      expect(init?.method).toBe('POST')
+      expect(JSON.parse(String(init?.body))).toEqual({
+        dataSource: { recordingMethod: 'ACTIVELY_MEASURED', platform: 'GOOGLE_WEB_API' },
+        exercise: {
+          interval: { startTime: exercise.startTime, endTime: exercise.endTime, startUtcOffset: '-25200s', endUtcOffset: '-28800s' },
+          exerciseType: 'RUNNING',
+          metricsSummary: { distanceMillimeters: 5200000, averageHeartRateBeatsPerMinute: '143' },
+        },
+      })
+      return Response.json({ done: true, response: { name } })
+    }) })
+    expect(await write.createExercise(exercise)).toBe(name)
+    expect(write.supportedMetrics.size).toBe(0)
+    const read = createGoogleHealthDriver('test', { fetch: fake(() => { throw new Error('Should not request a write') }) })
+    await expect(read.createExercise(exercise)).rejects.toMatchObject({ status: 403, reason: 'INSUFFICIENT_SCOPE' })
+  })
+
+  test('finds a previously submitted exercise only among this client’s own writes', async () => {
+    const exercise = { startTime: bounds.startTime, endTime: bounds.endTime, startOffsetSeconds: -25200, exerciseType: 'RUNNING' }
+    const name = 'users/u/dataTypes/exercise/dataPoints/recorded'
+    const driver = createGoogleHealthDriver('test', { scopes: GOOGLE_HEALTH_ACTIVITY_WRITE_SCOPE, fetch: fake(url => {
+      expect(url.pathname).toBe('/v4/users/me/dataTypes/exercise/dataPoints')
+      expect(url.searchParams.get('dataSourceFamily')).toBe('users/me/dataSourceFamilies/self-sources')
+      expect(url.searchParams.get('filter')).toBe('exercise.interval.civil_start_time >= "2026-10-31T23:30:00" AND exercise.interval.civil_start_time < "2026-10-31T23:30:01"')
+      return Response.json({ dataPoints: [
+        { name: 'users/u/dataTypes/exercise/dataPoints/other', exercise: { interval: bounds, exerciseType: 'WALKING' } },
+        { name, exercise: { interval: bounds, exerciseType: 'RUNNING' } },
+      ] })
+    }) })
+    expect(await driver.findWrittenExercise(exercise)).toBe(name)
   })
 
   test('reads every exercise page and converts physical quantities and the provider date', async () => {

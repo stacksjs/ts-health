@@ -4,8 +4,8 @@ export type { OuraSessionResponse, OuraTagResponse, OuraRestModeResponse, OuraDa
 
 export { WhoopDriver, createWhoopDriver } from './whoop'
 export { AppleHealthDriver, createAppleHealthDriver } from './apple-health'
-export { GoogleHealthDriver, GoogleHealthError, GOOGLE_HEALTH_SCOPES, createGoogleHealthDriver } from './google-health'
-export type { GoogleHealthIdentity, GoogleHealthOptions } from './google-health'
+export { GoogleHealthDriver, GoogleHealthError, GoogleHealthUnconfirmedWriteError, GOOGLE_HEALTH_ACTIVITY_WRITE_SCOPE, GOOGLE_HEALTH_SCOPES, createGoogleHealthDriver } from './google-health'
+export type { GoogleHealthExercise, GoogleHealthIdentity, GoogleHealthOptions } from './google-health'
 export { FitbitDriver, createFitbitDriver } from './fitbit'
 export { GarminHealthDriver, createGarminHealthDriver } from './garmin'
 export { TrainingPeaksHealthDriver, createTrainingPeaksHealthDriver } from './trainingpeaks'
