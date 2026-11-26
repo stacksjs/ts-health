@@ -1,5 +1,15 @@
 # Changelog
 
+[Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.42...v0.1.43)
+
+## ✨ Features
+
+- write completed exercises to Google Health ([7139a58](https://github.com/stacksjs/ts-health/commit/7139a58)) _(by Chris Breuer)_
+
+## Contributors
+
+- _Chris Breuer_
+
 [Compare changes](https://github.com/stacksjs/ts-health/compare/v0.1.41...v0.1.42)
 
 ## ✨ Features
